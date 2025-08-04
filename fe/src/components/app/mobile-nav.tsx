@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { AdminToggle } from "./admin-toggle"
 
 export function MobileNav() {
   return (
@@ -16,6 +17,7 @@ export function MobileNav() {
         <Link href="/contact" className="text-foreground/70 transition-colors hover:text-foreground">
           Contato
         </Link>
+        <AdminToggle />
       </div>
     </div>
   )

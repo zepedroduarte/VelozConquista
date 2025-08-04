@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
 import { MobileNav } from "./mobile-nav";
+import { AdminToggle } from "./admin-toggle";
 
 
 export function Header() {
@@ -34,6 +35,7 @@ export function Header() {
           <Link href="/contact" className="transition-colors hover:text-foreground/80">
             Contato
           </Link>
+          <AdminToggle />
         </nav>
       </div>
     </header>
