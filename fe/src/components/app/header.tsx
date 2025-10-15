@@ -33,7 +33,7 @@ export function Header() {
             Sobre Nós
           </Link>
           <Link href="/contact" className="transition-colors hover:text-foreground/80">
-            Contato
+            Contacto
           </Link>
           <AdminToggle />
         </nav>

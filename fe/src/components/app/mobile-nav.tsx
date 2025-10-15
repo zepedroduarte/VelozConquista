@@ -15,7 +15,7 @@ export function MobileNav() {
           Sobre Nós
         </Link>
         <Link href="/contact" className="text-foreground/70 transition-colors hover:text-foreground">
-          Contato
+          Contacto
         </Link>
         <AdminToggle />
       </div>

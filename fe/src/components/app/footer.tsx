@@ -39,7 +39,7 @@ export function Footer() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Contato</h3>
+            <h3 className="text-lg font-medium">Contacto</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>Estrada De Sta Eulalia 1</li>
                 <li>Ponte Lousa</li>
@@ -89,7 +89,7 @@ export function Footer() {
             </AccordionItem>
 
             <AccordionItem value="contato">
-              <AccordionTrigger>Contato</AccordionTrigger>
+              <AccordionTrigger>Contacto</AccordionTrigger>
               <AccordionContent>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li>Estrada De Sta Eulalia 1</li>
