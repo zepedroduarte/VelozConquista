@@ -24,7 +24,7 @@ export default function Home() {
                 Ver Veículos
               </Button>
             </Link>
-            <Link href="/contact">
+            <Link href="/contacto">
               <Button
                 size="lg"
                 variant="outline"

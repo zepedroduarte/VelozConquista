@@ -26,13 +26,13 @@ export function Header() {
           <span className="font-bold text-xl">Veloz Conquista</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          <Link href="/vehicles" className="transition-colors hover:text-foreground/80">
+          <Link href="/veiculos" className="transition-colors hover:text-foreground/80">
             Veículos
           </Link>
-          <Link href="/about" className="transition-colors hover:text-foreground/80">
+          <Link href="/sobre" className="transition-colors hover:text-foreground/80">
             Sobre Nós
           </Link>
-          <Link href="/contact" className="transition-colors hover:text-foreground/80">
+          <Link href="/contacto" className="transition-colors hover:text-foreground/80">
             Contacto
           </Link>
           <AdminToggle />
