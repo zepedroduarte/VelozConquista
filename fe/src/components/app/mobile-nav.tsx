@@ -8,13 +8,13 @@ export function MobileNav() {
         <span className="font-bold text-xl">Veloz Conquista</span>
       </Link>
       <div className="flex flex-col space-y-2">
-        <Link href="/vehicles" className="text-foreground/70 transition-colors hover:text-foreground">
+        <Link href="/veiculos" className="text-foreground/70 transition-colors hover:text-foreground">
           Veículos
         </Link>
-        <Link href="/about" className="text-foreground/70 transition-colors hover:text-foreground">
+        <Link href="/sobre" className="text-foreground/70 transition-colors hover:text-foreground">
           Sobre Nós
         </Link>
-        <Link href="/contact" className="text-foreground/70 transition-colors hover:text-foreground">
+        <Link href="/contacto" className="text-foreground/70 transition-colors hover:text-foreground">
           Contacto
         </Link>
         <AdminToggle />
