@@ -20,7 +20,7 @@ export default function About() {
                 <Card className="p-4 shadow-sm bg-card/70 border-l-4 border-red-600 mt-6">
                     <CardContent className="p-0 flex items-center gap-4">
                         <Image
-                            src="/images.png" 
+                            src="/logo.png" 
                             width={60}
                             height={60}
                             alt="Logo Veloz Conquista"

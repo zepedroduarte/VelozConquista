@@ -4,14 +4,23 @@ from .utils import vehicle_image_upload_path
 
 class BodyStyle(models.Model):
     name = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.name
 
 
 class FuelType(models.Model):
     name = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.name
 
 
 class TransmissionType(models.Model):
     name = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.name
     
 class TractionType(models.Model):
     name = models.CharField(max_length=50)
@@ -21,6 +30,9 @@ class TractionType(models.Model):
 
 class Status(models.Model):
     description = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.description
 
 
 class VehicleData(models.Model):
