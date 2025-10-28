@@ -1,4 +1,4 @@
-// fe/src/components/app/VehicleCard.tsx
+// fe/src/components/app/VehicleCard.tsx (Componente Único e Reutilizável)
 
 import Link from "next/link";
 import Image from "next/image";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SlidersHorizontal, Fuel, Gauge, Car } from "lucide-react";
 
+// Definição da interface de dados do veículo (deve ser importada de um arquivo comum no futuro)
 interface VehicleData {
     id: number;
     make: string;
@@ -21,20 +22,21 @@ interface VehicleData {
 
 interface VehicleCardProps {
     vehicle: VehicleData;
+    imageHeightClass?: string; 
 }
 
 function formatPrice(price: number): string {
     return price.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 });
 }
 
-export function VehicleCard({ vehicle }: VehicleCardProps) {
+export function VehicleCard({ vehicle, imageHeightClass = 'h-40' }: VehicleCardProps) {
     
     return (
-        <Card className="overflow-hidden shadow-md transition-shadow hover:shadow-lg flex flex-col h-full">
+        <Card className="overflow-hidden shadow-md transition-shadow hover:shadow-lg flex flex-col h-full p-0">
             
-            <div className="relative w-full h-40 shrink-0">
+            <div className={`relative w-full ${imageHeightClass} shrink-0`}>
                 <Image
-                    src={vehicle.imageSrc}
+                    src="/teste.png"
                     alt={`${vehicle.make} ${vehicle.model}`}
                     fill
                     className="object-cover"

@@ -32,9 +32,10 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Links Rápidos</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/vehicles" className="text-muted-foreground hover:text-foreground">Veículos</Link></li>
-              <li><Link href="/about" className="text-muted-foreground hover:text-foreground">Sobre Nós</Link></li>
-              <li><Link href="/contact" className="text-muted-foreground hover:text-foreground">Contato</Link></li>
+              <li><Link href="/veiculos" className="text-muted-foreground hover:text-foreground">Veículos</Link></li>
+              <li><Link href="/sobre" className="text-muted-foreground hover:text-foreground">Sobre Nós</Link></li>
+              <li><Link href="/contacto" className="text-muted-foreground hover:text-foreground">Contato</Link></li>
+              <li><Link href="/login" className="text-muted-foreground hover:text-foreground">Área Reservada</Link></li>
             </ul>
           </div>
 
@@ -81,9 +82,10 @@ export function Footer() {
               <AccordionTrigger>Links Rápidos</AccordionTrigger>
               <AccordionContent>
                 <ul className="space-y-2 text-sm">
-                  <li><Link href="/vehicles" className="text-muted-foreground hover:text-foreground">Veículos</Link></li>
-                  <li><Link href="/about" className="text-muted-foreground hover:text-foreground">Sobre Nós</Link></li>
-                  <li><Link href="/contact" className="text-muted-foreground hover:text-foreground">Contato</Link></li>
+                  <li><Link href="/veiculos" className="text-muted-foreground hover:text-foreground">Veículos</Link></li>
+                  <li><Link href="/sobre" className="text-muted-foreground hover:text-foreground">Sobre Nós</Link></li>
+                  <li><Link href="/contacto" className="text-muted-foreground hover:text-foreground">Contato</Link></li>
+                  <li><Link href="/login" className="font-semibold text-red-600 hover:text-foreground">Área Reservada</Link></li>
                 </ul>
               </AccordionContent>
             </AccordionItem>

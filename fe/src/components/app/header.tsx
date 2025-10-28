@@ -3,8 +3,6 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { MobileNav } from "./mobile-nav";
-import { AdminToggle } from "./admin-toggle";
-
 
 export function Header() {
   return (
@@ -35,7 +33,6 @@ export function Header() {
           <Link href="/contacto" className="transition-colors hover:text-foreground/80">
             Contacto
           </Link>
-          <AdminToggle />
         </nav>
       </div>
     </header>

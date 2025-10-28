@@ -12,7 +12,12 @@ class FuelType(models.Model):
 
 class TransmissionType(models.Model):
     name = models.CharField(max_length=50)
-
+    
+class TractionType(models.Model):
+    name = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.name
 
 class Status(models.Model):
     description = models.CharField(max_length=50)
@@ -26,6 +31,7 @@ class VehicleData(models.Model):
     transmission_type = models.ForeignKey(TransmissionType, on_delete=models.PROTECT)
     fuel_type = models.ForeignKey(FuelType, on_delete=models.PROTECT)
     body_style = models.ForeignKey(BodyStyle, on_delete=models.PROTECT)
+    traction_type = models.ForeignKey(TractionType, on_delete=models.PROTECT)
 
     license_plate = models.CharField(max_length=50)
     mileage = models.DecimalField(max_digits=18, decimal_places=2)

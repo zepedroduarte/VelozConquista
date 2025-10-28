@@ -1,5 +1,4 @@
 import Link from "next/link"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ChevronRight } from "lucide-react"
 import { VehicleCard } from "@/components/app/VehicleCard" 
@@ -86,7 +85,7 @@ export default function Home() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {FEATURED_VEHICLES.map((vehicle) => (
-                            <VehicleCard key={vehicle.id} vehicle={vehicle} />
+                            <VehicleCard key={vehicle.id} vehicle={vehicle} imageHeightClass="h-52"/>
                         ))}
                     </div>
                     

@@ -4,14 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; 
-import Link from "next/link";
-import { ListFilter, SlidersHorizontal, ChevronRight } from "lucide-react"; 
+import { ListFilter} from "lucide-react"; 
 import { useState, useMemo } from 'react'; 
 import { VehicleCard } from "@/components/app/VehicleCard"; 
 
-// --- DADOS MOCK (mantida para funcionalidade) ---
 const MOCK_VEHICLES = [
-    { id: 1, make: "Mercedes-Benz", model: "Classe C 220d", year: 2023, mileage: 2500, transmission: "Automática", fuel: "Diesel", engineSize: 2.0, price: 34599.00, imageSrc: "/placeholder.svg?height=200&width=400&text=Merc" },
+    { id: 1, make: "Mercedes-Benz", model: "Classe C 220d", year: 2023, mileage: 2500, transmission: "Automática", fuel: "Diesel", engineSize: 2.0, price: 34599.00, imageSrc: "/teste.png" },
     { id: 2, make: "BMW", model: "Série 3 320i", year: 2021, mileage: 45000, transmission: "Automática", fuel: "Gasolina", engineSize: 2.0, price: 28999.00, imageSrc: "/placeholder.svg?height=200&width=400&text=BMW" },
     { id: 3, make: "Renault", model: "Clio 1.0 TCe", year: 2019, mileage: 80000, transmission: "Manual", fuel: "Gasolina", engineSize: 1.0, price: 13500.00, imageSrc: "/placeholder.svg?height=200&width=400&text=Clio" },
     { id: 4, make: "Audi", model: "A4 Avant", year: 2022, mileage: 18000, transmission: "Automática", fuel: "Diesel", engineSize: 2.0, price: 38000.00, imageSrc: "/placeholder.svg?height=200&width=400&text=Audi" },
@@ -28,7 +26,6 @@ const MOCK_FILTERS = [
     { title: "Transmissão", key: "transmission", options: ["Automática", "Manual"] },
     { title: "Carroçaria", key: "body", options: ["Sedan", "SUV", "Hatchback", "Familiar"] },
 ];
-// --- FIM MOCK DATA ---
 
 
 export default function VehiclesPage() {
