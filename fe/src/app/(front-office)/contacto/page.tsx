@@ -150,7 +150,7 @@ export default function Contact() {
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input placeholder="Assunto" {...field} />
+                              <Input placeholder="Assunto *" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -163,7 +163,7 @@ export default function Contact() {
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Textarea placeholder="Mensagem" rows={5} {...field} />
+                              <Textarea placeholder="Mensagem *" rows={5} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
