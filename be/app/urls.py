@@ -8,7 +8,9 @@ router.register(r'vehicles', views.PublicVehicleViewSet, basename='vehicle-publi
 router.register(r'admin/vehicles', views.AdminVehicleViewSet, basename='vehicle-admin')
 
 urlpatterns = [
+    path('status/', views.APIStatusView.as_view(), name='api-status'),
     path('login/', views.LoginView.as_view(), name='api-login'),
+    path('logout/', views.LogoutView.as_view(), name='api-logout'),
     path('messages/', views.MessageCreateViewSet.as_view({'post': 'create'}), name='message-submit'),
     path('', include(router.urls)), 
 ]

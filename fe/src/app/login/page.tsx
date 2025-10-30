@@ -9,8 +9,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 import "../globals.css";
+import axios from 'axios';
+import { useAuth } from "@/context/AuthContext";
 
 const LoginSchema = z.object({
   username: z.string().min(1, "O nome de utilizador é obrigatório."),
@@ -20,6 +21,7 @@ const LoginSchema = z.object({
 type LoginValues = z.infer<typeof LoginSchema>;
 
 export default function LoginPage() {
+    const { login } = useAuth();
     const router = useRouter();
 
     const form = useForm<LoginValues>({
@@ -31,9 +33,18 @@ export default function LoginPage() {
     });
 
     async function onSubmit(values: LoginValues) {
-        console.log("Tentativa de Login:", values);
-        Cookies.set('admin', 'true', { expires: 7, secure: process.env.NODE_ENV === 'production' });
-        router.push('/admin/dashboard');
+        try {
+            await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/login/`, values, {
+                withCredentials: true,
+            });
+            
+            login(); 
+            
+            router.push('/admin/dashboard');
+
+        } catch (error) {
+            console.error("Falha na autenticação:", error);
+        }
     }
 
     return (

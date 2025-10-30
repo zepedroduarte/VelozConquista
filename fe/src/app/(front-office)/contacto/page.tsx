@@ -15,9 +15,8 @@ import { useState } from "react";
 const ContactFormSchema = z.object({
     name: z.string().min(2, "O nome é obrigatório."),
     email: z.string().email("Por favor, insira um email válido."),
-    subject: z.string().max(255, "O assunto é muito longo.").optional(),
+    subject: z.string().min(1, "O assunto é obrigatório."), 
     message: z.string().min(1, "A mensagem é obrigatória."), 
-    phone_number: z.string().optional(), 
 });
 
 type ContactFormValues = z.infer<typeof ContactFormSchema>;
@@ -44,7 +43,8 @@ export default function Contact() {
       },
   });
 
-  function onSubmit(values: ContactFormValues) {
+  async function onSubmit(values: ContactFormValues) {
+      // 🚨 EM PRODUÇÃO: Faria um POST para /api/messages/
       console.log("Formulário Submetido:", values);
       setSubmitted(true);
       form.reset();
@@ -60,6 +60,7 @@ export default function Contact() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <div className="space-y-6">
+              {/* Bloco de Contactos (Mantido) */}
               <div className="space-y-4">
                 <h2 className="text-2xl font-semibold mb-2 border-b-2 border-red-600 inline-block pb-1">
                   Ligue ou Visite
@@ -124,7 +125,8 @@ export default function Contact() {
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input placeholder="Nome *" {...field} />
+                              {/* Removido o * do placeholder */}
+                              <Input placeholder="Nome" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -137,7 +139,7 @@ export default function Contact() {
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input placeholder="Email *" type="email" {...field} />
+                              <Input placeholder="Email" type="email" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -150,7 +152,7 @@ export default function Contact() {
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input placeholder="Assunto *" {...field} />
+                              <Input placeholder="Assunto" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -163,27 +165,31 @@ export default function Contact() {
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Textarea placeholder="Mensagem *" rows={5} {...field} />
+                              <Textarea placeholder="Mensagem" rows={5} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                       
-                      <div className="flex justify-between items-center pt-2">
-                        <Button 
-                          type="submit" 
-                          className="bg-red-600 hover:bg-red-700 text-white transition-all w-fit"
-                          disabled={form.formState.isSubmitting}
-                        >
-                          {"Enviar"}
-                        </Button>
+                      <p className="text-sm text-muted-foreground pt-1">
+                        Todos os campos são obrigatórios.
+                      </p>
 
-                        {submitted && (
-                            <p className="text-sm text-green-600">
-                                Obrigado pela sua mensagem.<br />Responderemos assim que possível.
-                            </p>
-                        )}
+                      <div className="flex justify-end items-center pt-2">                                       
+                        {submitted ? (
+                          <p className="text-sm text-green-600 ml-4">
+                              Obrigado pela sua mensagem.<br />Responderemos assim que possível.
+                          </p>
+                        ) : (
+                          <Button 
+                            type="submit" 
+                            className="bg-red-600 hover:bg-red-700 text-white transition-all w-fit"
+                            disabled={form.formState.isSubmitting}
+                          >
+                            {form.formState.isSubmitting ? "A Enviar..." : "Enviar"}
+                          </Button>
+                        )}                        
                       </div>
                     </form>
                   </Form>

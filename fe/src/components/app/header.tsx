@@ -3,6 +3,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { MobileNav } from "./mobile-nav";
+import { ThemeToggle } from "./theme-toggle";
 
 export function Header() {
   return (
@@ -16,24 +17,32 @@ export function Header() {
         </SheetTrigger>
         <SheetContent side="left" className="pr-0">
           <MobileNav />
+          <ThemeToggle /> 
         </SheetContent>
       </Sheet>
 
-      <div className="w-[70vw] mx-auto flex items-center space-x-6">
-        <Link href="/" className="flex items-center space-x-2">
-          <span className="font-bold text-xl">Veloz Conquista</span>
-        </Link>
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          <Link href="/veiculos" className="transition-colors hover:text-foreground/80">
-            Veículos
-          </Link>
-          <Link href="/sobre" className="transition-colors hover:text-foreground/80">
-            Sobre Nós
-          </Link>
-          <Link href="/contacto" className="transition-colors hover:text-foreground/80">
-            Contacto
-          </Link>
-        </nav>
+      <div className="w-[70vw] mx-auto flex items-center justify-between"> 
+        
+        <div className="flex items-center space-x-6">
+             <Link href="/" className="flex items-center space-x-2">
+                <span className="font-bold text-xl">Veloz Conquista</span>
+             </Link>
+             <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+                <Link href="/veiculos" className="transition-colors hover:text-foreground/80">
+                  Veículos
+                </Link>
+                <Link href="/sobre" className="transition-colors hover:text-foreground/80">
+                  Sobre Nós
+                </Link>
+                <Link href="/contacto" className="transition-colors hover:text-foreground/80">
+                  Contacto
+                </Link>
+             </nav>
+        </div>
+
+        <div className="hidden md:flex items-center space-x-2">
+            <ThemeToggle /> 
+        </div>
       </div>
     </header>
   );

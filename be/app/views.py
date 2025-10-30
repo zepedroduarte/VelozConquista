@@ -6,11 +6,24 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from rest_framework.views import APIView
 
 from .models import Vehicle
 from .serializers import AdminVehicleCreateSerializer, VehicleSerializer, MessageSerializer
+
+class APIStatusView(APIView):
+
+    permission_classes = [AllowAny] 
+
+    def get(self, request):
+        if request.user.is_authenticated and request.user.is_staff:
+            return Response({
+                "isAuthenticated": True,
+                "username": request.user.username
+            })
+        else:
+            return Response({"isAuthenticated": False})
 
 class LoginView(APIView):
 
@@ -44,6 +57,19 @@ class LoginView(APIView):
                 {"detail": "Credenciais inválidas ou utilizador não encontrado."}, 
                 status=status.HTTP_401_UNAUTHORIZED
             )
+            
+class LogoutView(APIView):
+    
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request): 
+        logout(request)
+        
+        return Response(
+            {"detail": "Sessão terminada com sucesso."},
+            status=status.HTTP_200_OK
+        )
+
 
 class PublicVehicleViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]

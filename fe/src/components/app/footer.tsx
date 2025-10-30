@@ -1,3 +1,5 @@
+'use client';
+
 import Link from "next/link";
 import { Facebook, Instagram } from "lucide-react";
 import {
@@ -6,8 +8,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useAuth } from "@/context/AuthContext";
 
 export function Footer() {
+  const { isAuthenticated, isLoading } = useAuth(); // Usar o contexto
+
+  if (isLoading) {
+      return null;
+  }
+
+
   return (
     <footer className="border-t bg-background">
       <div className="w-[70vw] mx-auto py-3 md:py-3 px-4">
@@ -35,7 +45,11 @@ export function Footer() {
               <li><Link href="/veiculos" className="text-muted-foreground hover:text-foreground">Veículos</Link></li>
               <li><Link href="/sobre" className="text-muted-foreground hover:text-foreground">Sobre Nós</Link></li>
               <li><Link href="/contacto" className="text-muted-foreground hover:text-foreground">Contato</Link></li>
-              <li><Link href="/login" className="text-muted-foreground hover:text-foreground">Área Reservada</Link></li>
+              {isAuthenticated ? (
+                  <li><Link href="/admin/dashboard" className="font-semibold text-red-600 hover:text-foreground">Área Reservada</Link></li>
+              ) : (
+                  <li><Link href="/login" className="font-semibold text-gray-500 hover:text-foreground">Área Reservada</Link></li>
+              )}
             </ul>
           </div>
 
@@ -85,7 +99,11 @@ export function Footer() {
                   <li><Link href="/veiculos" className="text-muted-foreground hover:text-foreground">Veículos</Link></li>
                   <li><Link href="/sobre" className="text-muted-foreground hover:text-foreground">Sobre Nós</Link></li>
                   <li><Link href="/contacto" className="text-muted-foreground hover:text-foreground">Contato</Link></li>
-                  <li><Link href="/login" className="font-semibold text-red-600 hover:text-foreground">Área Reservada</Link></li>
+                  {isAuthenticated ? (
+                      <li><Link href="/admin/dashboard" className="font-semibold text-red-600 hover:text-foreground">Área Reservada</Link></li>
+                  ) : (
+                      <li><Link href="/login" className="font-semibold text-gray-500 hover:text-foreground">Área Reservada</Link></li>
+                  )}                
                 </ul>
               </AccordionContent>
             </AccordionItem>

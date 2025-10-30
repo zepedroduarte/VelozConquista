@@ -65,7 +65,7 @@ export default function Home() {
                             <Button
                                 size="lg"
                                 variant="outline"
-                                className="border-white text-black hover:bg-white/90 transition-all"
+                                className="border-white text-black dark:text-white hover:bg-white/90 transition-all"
                             >
                                 Contacto
                             </Button>
