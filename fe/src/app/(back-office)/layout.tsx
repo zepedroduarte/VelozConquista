@@ -1,19 +1,28 @@
-// fe/src/app/(admin)/layout.tsx
-
 'use client'
 
-import "../globals.css";
 import { AdminSidebar } from "@/components/app/adminSidebar";
+import { useAuth } from "@/context/AuthContext"; 
+import { useRouter } from "next/navigation"; 
+import { useEffect } from "react"; 
 
 export default function AdminLayout({
-    children,
+        children,
     }: Readonly<{
-    children: React.ReactNode;
+        children: React.ReactNode;
     }>) {
+    
+    const { isAuthenticated } = useAuth(); 
+    const router = useRouter();
 
-    return (
-        <html lang="en">
-            <body>
+    useEffect(() => {
+        if (!isAuthenticated) {
+            router.push('/login'); 
+        }
+    }, [isAuthenticated, router]); 
+
+    if (isAuthenticated) {
+        return (
+            <>
                 <div className="min-h-screen grid grid-cols-1 lg:grid-cols-[250px_1fr] bg-muted">
                     <div className="fixed hidden lg:block lg:w-[250px] h-screen border-r border-sidebar-border">
                         <AdminSidebar />
@@ -23,7 +32,9 @@ export default function AdminLayout({
                         {children}
                     </main>
                 </div>
-            </body>
-        </html>
-    );
+            </>
+        );
+    }
+
+    return null;
 }

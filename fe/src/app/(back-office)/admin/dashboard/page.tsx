@@ -1,5 +1,3 @@
-// fe/src/app/(admin)/dashboard/page.tsx
-
 export default function AdminDashboard() {
     return (
         <div className="p-8">

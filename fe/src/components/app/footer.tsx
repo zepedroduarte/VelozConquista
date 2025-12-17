@@ -48,7 +48,7 @@ export function Footer() {
               {isAuthenticated ? (
                   <li><Link href="/admin/dashboard" className="font-semibold text-red-600 hover:text-foreground">Área Reservada</Link></li>
               ) : (
-                  <li><Link href="/login" className="font-semibold text-gray-500 hover:text-foreground">Área Reservada</Link></li>
+                  <li><Link href="/login" className="text-muted-foreground hover:text-foreground">Área Reservada</Link></li>
               )}
             </ul>
           </div>
@@ -102,7 +102,7 @@ export function Footer() {
                   {isAuthenticated ? (
                       <li><Link href="/admin/dashboard" className="font-semibold text-red-600 hover:text-foreground">Área Reservada</Link></li>
                   ) : (
-                      <li><Link href="/login" className="font-semibold text-gray-500 hover:text-foreground">Área Reservada</Link></li>
+                      <li><Link href="/login" className="text-muted-foreground hover:text-foreground">Área Reservada</Link></li>
                   )}                
                 </ul>
               </AccordionContent>

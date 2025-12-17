@@ -63,18 +63,12 @@ class Vehicle(models.Model):
 
 
 class VehicleImage(models.Model):
-    vehicle_data = models.ForeignKey(VehicleData, on_delete=models.CASCADE)
+    vehicle_data = models.ForeignKey(VehicleData, on_delete=models.CASCADE, related_name='images' )
     image = models.ImageField(upload_to=vehicle_image_upload_path)
+    is_primary = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.image.url
-
-
-class VehicleImageLink(models.Model):
-    vehicle_data = models.ForeignKey(VehicleData, on_delete=models.CASCADE)
-    vehicle_image = models.ForeignKey(VehicleImage, on_delete=models.CASCADE)
-    is_primary = models.BooleanField(null=True, blank=True)
-
+        return f"Image for {self.vehicle_data.license_plate}"
 
 class Customer(models.Model):
     name = models.TextField()

@@ -1,5 +1,3 @@
-// fe/src/app/veiculos/[id]/page.tsx
-
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";

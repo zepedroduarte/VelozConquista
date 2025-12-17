@@ -1,4 +1,3 @@
-// fe/src/app/(admin-layout)/admin/vehicles/page.tsx
 'use client'
 
 import { Button } from "@/components/ui/button";

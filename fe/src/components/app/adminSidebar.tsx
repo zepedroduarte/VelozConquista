@@ -1,7 +1,8 @@
-// fe/src/components/app/AdminSidebar.tsx
 import Link from "next/link";
-import { Car, DollarSign, Users, Wrench, MessageSquare, List, Home, LogOut, ArrowLeft, ArrowLeftIcon } from "lucide-react";
+import { Car, DollarSign, Users, Wrench, MessageSquare, List, Home, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 const navItems = [
     { href: "/admin/dashboard", label: "Dashboard", icon: Home },
@@ -14,6 +15,14 @@ const navItems = [
 ];
 
 export function AdminSidebar() {
+    const { logout } = useAuth(); 
+    const router = useRouter();
+
+    async function onSubmit() {
+        logout();     
+        router.push('/'); 
+    }
+
     return (
         <aside className="h-full w-full bg-sidebar text-sidebar-foreground flex flex-col p-4 shadow-xl">
             
@@ -40,6 +49,7 @@ export function AdminSidebar() {
 
             <div className="pt-4 border-t border-sidebar-border">
                 <Button 
+                    onClick={onSubmit}
                     variant="ghost" 
                     className="w-full justify-start space-x-3 text-sm text-muted-foreground hover:bg-sidebar-accent/20"
                 >

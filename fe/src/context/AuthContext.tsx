@@ -1,56 +1,49 @@
-// fe/src/context/AuthContext.tsx
 'use client';
 
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import axios from 'axios';
+import Cookies from 'js-cookie';
+import api from '@/lib/axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
+type LoginValues = Record<'username' | 'password', string>; 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: () => void;
+  login: (values: LoginValues) => Promise<boolean>; 
   logout: () => void;
-  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/status/`, {
-            withCredentials: true,
-        });
-        if (response.data.isAuthenticated) {
-          setIsAuthenticated(true);
-        }
-      } catch (error) {
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuthStatus();
-  }, []);
-
-  const login = () => setIsAuthenticated(true);
+  const login = async (values: LoginValues): Promise<boolean> => {
+    try {
+      await api.post('/login/', values);
+      setIsAuthenticated(true); 
+      return true;
+    } catch (error) {
+      console.error("Falha na autenticação:", error);
+      setIsAuthenticated(false);
+      return false; 
+    }
+  };
   
   const logout = async () => {
     try {
-        await axios.post(`${API_BASE_URL}/logout/`, {}, { withCredentials: true });
+      await api.post('/logout/');
+    } catch (error) {
+      console.error("Logout no backend falhou:", error);
     } finally {
-        setIsAuthenticated(false);
-        window.location.href = '/'; 
+      setIsAuthenticated(false);
+      Cookies.remove('sessionid');
+      Cookies.remove('csrftoken');
+      //window.location.href = '/'; 
     }
   };
 
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
