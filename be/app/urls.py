@@ -11,5 +11,6 @@ urlpatterns = [
     path('login/', views.LoginView.as_view(), name='api-login'),
     path('logout/', views.LogoutView.as_view(), name='api-logout'),
     path('messages/', views.MessageCreateViewSet.as_view({'post': 'create'}), name='message-submit'),
+    path('vehicle-attributes/', views.VehicleAttributesView.as_view(), name='vehicle-attributes'),
     path('', include(router.urls)), 
 ]

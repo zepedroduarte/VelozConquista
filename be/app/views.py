@@ -7,8 +7,13 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
-from .models import Vehicle, Messages
+from .models import BodyStyle, FuelType, Status, TractionType, TransmissionType, Vehicle, Messages
 from .serializers import (
+    BodyStyleSerializer,
+    FuelTypeSerializer,
+    StatusSerializer,
+    TractionTypeSerializer,
+    TransmissionTypeSerializer,
     VehicleSerializer, 
     AdminVehicleCreateSerializer, 
     AdminVehicleReadSerializer, 
@@ -41,20 +46,39 @@ class LoginView(APIView):
             {"detail": "Credenciais inválidas."}, 
             status=status.HTTP_401_UNAUTHORIZED
         )
+        
+class VehicleAttributesView(APIView):
+    permission_classes = [AllowAny]  
+
+    def get(self, request):
+        data = {
+            "body_style": BodyStyleSerializer(BodyStyle.objects.all(), many=True).data,
+            "fuel_type": FuelTypeSerializer(FuelType.objects.all(), many=True).data,
+            "transmission_type": TransmissionTypeSerializer(TransmissionType.objects.all(), many=True).data,
+            "traction_type": TractionTypeSerializer(TractionType.objects.all(), many=True).data,
+            "status": StatusSerializer(Status.objects.all(), many=True).data,
+        }
+        return Response(data)
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         logout(request)
-        return Response({"detail": "Sessão terminada."}, status=status.HTTP_200_OK)
+        
+        response = Response(
+            {"detail": "Sessão terminada com sucesso."},
+            status=status.HTTP_200_OK
+        )
+        
+        return response    
 
 class PublicVehicleViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     serializer_class = VehicleSerializer
 
     def get_queryset(self):
-        return Vehicle.objects.filter(status__description='Disponível').order_by('-created_at')
+        return Vehicle.objects.filter(status__name='Disponível').order_by('-created_at')
     
 class AdminVehicleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser] 
@@ -66,6 +90,30 @@ class AdminVehicleViewSet(viewsets.ModelViewSet):
             return AdminVehicleCreateSerializer
         
         return AdminVehicleReadSerializer
+    
+    def perform_destroy(self, instance):
+        if instance.vehicle_data:
+            instance.vehicle_data.delete()
+        else:
+            instance.delete()
+            
+    @action(detail=True, methods=['post'])
+    def mark_sold(self, request, pk=None):
+        vehicle = self.get_object()
+        final_price = request.data.get('final_price')
+
+        try:
+            sold_status = Status.objects.get(name="Vendido")
+            
+            vehicle.status = sold_status
+
+            if final_price:
+                vehicle.retail_price = final_price
+            
+            vehicle.save()
+            return Response({'status': 'Veículo marcado como vendido', 'price': vehicle.retail_price})
+        except Status.DoesNotExist:
+            return Response({'error': 'Status Vendido não encontrado'}, status=400)       
     
 class MessageCreateViewSet(viewsets.GenericViewSet):
     permission_classes = [AllowAny]

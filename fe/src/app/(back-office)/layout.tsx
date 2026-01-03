@@ -1,40 +1,45 @@
 'use client'
 
-import { AdminSidebar } from "@/components/app/adminSidebar";
 import { useAuth } from "@/context/AuthContext"; 
 import { useRouter } from "next/navigation"; 
-import { useEffect } from "react"; 
+import { useEffect, useState } from "react"; 
+import api from '@/lib/axios';
+import Cookies from 'js-cookie';
+import { AdminSidebar } from "@/components/app/adminSidebar";
 
-export default function AdminLayout({
-        children,
-    }: Readonly<{
-        children: React.ReactNode;
-    }>) {
-    
-    const { isAuthenticated } = useAuth(); 
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+    const { isAuthenticated, logout } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
-        if (!isAuthenticated) {
-            router.push('/login'); 
-        }
-    }, [isAuthenticated, router]); 
+        const checkSecurity = async () => {
+            if (!isAuthenticated) {
+                router.push('/login');
+                return;
+            }
 
-    if (isAuthenticated) {
-        return (
-            <>
-                <div className="min-h-screen grid grid-cols-1 lg:grid-cols-[250px_1fr] bg-muted">
-                    <div className="fixed hidden lg:block lg:w-[250px] h-screen border-r border-sidebar-border">
-                        <AdminSidebar />
-                    </div>
+            try {
+                await api.get('/admin/vehicles/'); 
+            } catch (err) {
+                logout();
+            }
+        };
 
-                    <main className="lg:col-start-2 w-full">
-                        {children}
-                    </main>
+        checkSecurity();
+    }, [isAuthenticated, logout, router]);
+
+
+    return (
+        <>
+            <div className="min-h-screen grid grid-cols-1 lg:grid-cols-[250px_1fr] bg-muted">
+                <div className="fixed hidden lg:block lg:w-[250px] h-screen border-r border-sidebar-border">
+                    <AdminSidebar />
                 </div>
-            </>
-        );
-    }
 
-    return null;
+                <main className="lg:col-start-2 w-full">
+                    {children}
+                </main>
+            </div>
+        </>
+    );
 }

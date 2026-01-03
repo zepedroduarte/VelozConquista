@@ -5,27 +5,82 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { PlusCircle, Edit, Trash2, Search, DollarSign, Car } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import api from "@/lib/axios";
+import { Vehicle, VehicleSchema } from "@/schemas/Vehicle";
+import z from "zod";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { SellVehicleDialog } from "@/components/app/SellVehicleDialog";
 
-const MOCK_ADMIN_VEHICLES = [
-    { id: 1, make: "Mercedes-Benz", model: "C 220d", license: "01-AA-01", status: "Disponível", retailPrice: 34599.00, purchasePrice: 28000.00 },
-    { id: 2, make: "BMW", model: "Série 3 320i", license: "02-BB-02", status: "Reservado", retailPrice: 28999.00, purchasePrice: 22000.00 },
-    { id: 3, make: "Renault", model: "Clio 1.0", license: "03-CC-03", status: "Vendido", retailPrice: 13500.00, purchasePrice: 9000.00 },
-    { id: 4, make: "Audi", model: "A4 Avant", license: "04-DD-04", status: "Preparação", retailPrice: 38000.00, purchasePrice: 30000.00 },
-];
+function formatPrice(price: string): string {
+  const numericPrice = parseFloat(price);
+  
+  if (isNaN(numericPrice)) return "0,00 €";
 
-function formatPrice(price: number): string {
-    return price.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
+  return numericPrice.toLocaleString('pt-PT', { 
+    style: 'currency', 
+    currency: 'EUR', 
+    minimumFractionDigits: 2 
+  });
 }
 
-
 export default function AdminVehiclesPage() {
+
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const response = await api.get('/admin/vehicles/');
+
+                const validatedData = z.array(VehicleSchema).parse(response.data);
+                setVehicles(validatedData);
+
+            } catch (error) {
+                console.error("Erro ao carregar veículos:", error);
+            }
+        }
+
+        fetchData();
+    }, []);
+
+    const handleDelete = async (id: number) => {
+        try {
+            await api.delete(`/admin/vehicles/${id}/`);
+
+            setVehicles((prev) => prev.filter((v) => v.id !== id));
+        } catch (error) {
+            console.error("Erro ao eliminar:", error);
+        }
+    };
+
+    const handleSale = async (id: number, finalPrice: string) => {
+        try {
+            await api.post(`/admin/vehicles/${id}/mark_sold/`, {
+                final_price: finalPrice
+            });
+
+            setVehicles((prev) => prev.map(vehicle => {
+                if (vehicle.id === id) {
+                    return {
+                        ...vehicle,
+                        retail_price: finalPrice, 
+                        status: { ...vehicle.status, name: 'Vendido'}
+                    };
+                }
+                return vehicle;
+            }));
+        } catch (error) {
+            console.error("Erro ao registar venda:", error);
+            alert("Erro ao registar venda.");
+        }
+    };
+
     const [searchTerm, setSearchTerm] = React.useState('');
-    const filteredVehicles = MOCK_ADMIN_VEHICLES.filter(v => 
-        v.make.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        v.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        v.license.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredVehicles = vehicles.filter(v => 
+        v.vehicle_data.make.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        v.vehicle_data.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        v.vehicle_data.license_plate.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -52,7 +107,7 @@ export default function AdminVehiclesPage() {
                 <CardHeader>
                     <CardTitle className="text-xl">Inventário Completo</CardTitle>
                     <CardDescription>
-                        Total de {MOCK_ADMIN_VEHICLES.length} veículos.
+                        Total de {vehicles.length} veículos.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -85,42 +140,70 @@ export default function AdminVehiclesPage() {
                                 {filteredVehicles.map((vehicle) => (
                                     <tr key={vehicle.id} className="hover:bg-muted/50 transition-colors">
                                         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">{vehicle.id}</td>
-                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-foreground">{vehicle.license}</td>
-                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-foreground">{vehicle.make} {vehicle.model}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-foreground">{vehicle.vehicle_data.license_plate}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-foreground">{vehicle.vehicle_data.make} {vehicle.vehicle_data.model} {vehicle.vehicle_data.year}</td>
                                         
                                         <td className="px-4 py-3 whitespace-nowrap text-sm">
                                             <span 
                                                 className={`inline-flex px-2 py-0.5 text-xs font-semibold leading-5 rounded-full ${
-                                                    vehicle.status === 'Disponível' ? 'bg-green-100 text-green-800' :
-                                                    vehicle.status === 'Reservado' ? 'bg-yellow-100 text-yellow-800' :
-                                                    vehicle.status === 'Vendido' ? 'bg-red-100 text-red-800' :
+                                                    vehicle.status.name === 'Disponível' ? 'bg-green-100 text-green-800' :
+                                                    vehicle.status.name === 'Reservado' ? 'bg-yellow-100 text-yellow-800' :
+                                                    vehicle.status.name === 'Vendido' ? 'bg-red-100 text-red-800' :
                                                     'bg-gray-100 text-gray-800'
                                                 }`}
                                             >
-                                                {vehicle.status}
+                                                {vehicle.status.name}
                                             </span>
                                         </td>
                                         
                                         <td className="px-4 py-3 whitespace-nowrap text-sm text-muted-foreground">
-                                            {formatPrice(vehicle.purchasePrice)}
+                                            {formatPrice(vehicle.purchase_price)}
                                         </td>
                                         
                                         <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-red-600">
-                                            {formatPrice(vehicle.retailPrice)}
+                                            {formatPrice(vehicle.retail_price)}
                                         </td>
                                         
-                                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium space-x-2">
-                                            <Button variant="ghost" size="sm" title="Vender/Registar Venda">
-                                                <DollarSign className="size-4 text-green-600" />
-                                            </Button>
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium space-x-2">                                      
                                             <Link href={`/admin/vehicles/${vehicle.id}/edit`} passHref>
                                                 <Button variant="ghost" size="sm" title="Editar Veículo">
                                                     <Edit className="size-4 text-primary" />
                                                 </Button>
                                             </Link>
-                                            <Button variant="ghost" size="sm" title="Eliminar Veículo">
-                                                <Trash2 className="size-4 text-destructive" />
-                                            </Button>
+       
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-red-600">
+                                                        <Trash2 className="size-4 text-destructive" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Tem a certeza absoluta?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            Esta ação não pode ser desfeita. Isto irá eliminar permanentemente o veículo 
+                                                            <span className="font-bold text-foreground"> {vehicle.vehicle_data.make} {vehicle.vehicle_data.model} ({vehicle.vehicle_data.license_plate}) </span>
+                                                            e remover todos os dados associados dos servidores.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                        <AlertDialogAction 
+                                                            onClick={() => handleDelete(vehicle.id)}
+                                                            className="bg-red-600 hover:bg-red-700 text-white"
+                                                        >
+                                                            Eliminar Veículo
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+
+                                            {vehicle.status.name !== 'Vendido' && (
+                                                <SellVehicleDialog 
+                                                    vehicle={vehicle} 
+                                                    onConfirm={handleSale} 
+                                                />
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

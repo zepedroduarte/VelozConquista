@@ -1,46 +1,40 @@
 'use client';
 
-import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import Cookies from 'js-cookie';
+import { createContext, useState, useContext, ReactNode } from 'react';
 import api from '@/lib/axios';
+import Cookies from 'js-cookie';
 
-type LoginValues = Record<'username' | 'password', string>; 
+
+type LoginValues = Record<'username' | 'password', string>;
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (values: LoginValues) => Promise<boolean>; 
+  login: (values: LoginValues) => Promise<boolean>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!Cookies.get('is_logged_in'));
 
-  const login = async (values: LoginValues): Promise<boolean> => {
+  const login = async (values: LoginValues) => {
     try {
       await api.post('/login/', values);
-      setIsAuthenticated(true); 
+      Cookies.set('is_logged_in', 'true', { expires: 1, secure: true }); 
+      setIsAuthenticated(true);
       return true;
-    } catch (error) {
-      console.error("Falha na autenticação:", error);
-      setIsAuthenticated(false);
-      return false; 
-    }
-  };
-  
-  const logout = async () => {
-    try {
-      await api.post('/logout/');
-    } catch (error) {
-      console.error("Logout no backend falhou:", error);
-    } finally {
-      setIsAuthenticated(false);
-      Cookies.remove('sessionid');
-      Cookies.remove('csrftoken');
-      //window.location.href = '/'; 
-    }
+    } catch { return false; }
   };
 
+  const logout = async () => {
+    try { 
+      await api.post('/logout/'); 
+    } finally { 
+      Cookies.remove('is_logged_in');
+      setIsAuthenticated(false); 
+      window.location.href = '/'; 
+    }
+  };
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
@@ -49,10 +43,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
-  }
+  if (!context) throw new Error('useAuth deve ser usado dentro de AuthProvider');
   return context;
-}
+};

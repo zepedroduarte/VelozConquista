@@ -8,7 +8,7 @@ from .models import (
 class StatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Status
-        fields = ['id', 'description']
+        fields = ['id', 'name']
 
 class BodyStyleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,13 +30,11 @@ class TractionTypeSerializer(serializers.ModelSerializer):
         model = TractionType
         fields = ['id', 'name']
 
-# --- Imagens ---
 class VehicleImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = VehicleImage
         fields = ['id', 'image', 'is_primary']  
 
-# --- Leitura (Public & Admin Display) ---
 class VehicleDataSerializer(serializers.ModelSerializer):
     body_style = BodyStyleSerializer(read_only=True)
     fuel_type = FuelTypeSerializer(read_only=True)
@@ -47,14 +45,6 @@ class VehicleDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = VehicleData
         fields = '__all__'
-
-class VehicleSerializer(serializers.ModelSerializer):
-    vehicle_data = VehicleDataSerializer(read_only=True)
-    status = StatusSerializer(read_only=True)
-    
-    class Meta:
-        model = Vehicle
-        fields = ['id', 'vehicle_data', 'retail_price', 'status', 'created_at']
 
 class AdminVehicleReadSerializer(serializers.ModelSerializer):
     vehicle_data = VehicleDataSerializer(read_only=True)
@@ -70,6 +60,14 @@ class AdminVehicleReadSerializer(serializers.ModelSerializer):
             'status', 
             'created_at',
         ]
+class VehicleSerializer(serializers.ModelSerializer):
+    vehicle_data = VehicleDataSerializer(read_only=True)
+    status = StatusSerializer(read_only=True)
+    
+    class Meta:
+        model = Vehicle
+        fields = ['id', 'vehicle_data', 'retail_price', 'status', 'created_at']
+
 
 class AdminVehicleDataInputSerializer(serializers.ModelSerializer):
     body_style_id = serializers.PrimaryKeyRelatedField(queryset=BodyStyle.objects.all(), source='body_style')
@@ -86,9 +84,34 @@ class AdminVehicleDataInputSerializer(serializers.ModelSerializer):
         ]
 
 class AdminVehicleCreateSerializer(serializers.ModelSerializer):
-    vehicle_data = AdminVehicleDataInputSerializer()
-    status_id = serializers.PrimaryKeyRelatedField(queryset=Status.objects.all(), source='status')
-    
+    make = serializers.CharField(write_only=True)
+    model = serializers.CharField(write_only=True)
+    version = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    license_plate = serializers.CharField(write_only=True)
+    mileage = serializers.DecimalField(max_digits=18, decimal_places=2, write_only=True)
+    color = serializers.CharField(write_only=True)
+    seats = serializers.IntegerField(write_only=True)
+    doors = serializers.IntegerField(write_only=True)
+    power = serializers.DecimalField(max_digits=18, decimal_places=2, write_only=True)
+    engine_size = serializers.DecimalField(max_digits=18, decimal_places=2, write_only=True)
+    year = serializers.IntegerField(write_only=True)
+
+    transmission_type_id = serializers.PrimaryKeyRelatedField(
+        queryset=TransmissionType.objects.all(), write_only=True
+    )
+    fuel_type_id = serializers.PrimaryKeyRelatedField(
+        queryset=FuelType.objects.all(), write_only=True
+    )
+    body_style_id = serializers.PrimaryKeyRelatedField(
+        queryset=BodyStyle.objects.all(), write_only=True
+    )
+    traction_type_id = serializers.PrimaryKeyRelatedField(
+        queryset=TractionType.objects.all(), write_only=True
+    )
+    status_id = serializers.PrimaryKeyRelatedField(
+        queryset=Status.objects.all(), write_only=True
+    )
+
     images = serializers.ListField(
         child=serializers.ImageField(allow_empty_file=False, use_url=False),
         write_only=True,
@@ -97,27 +120,87 @@ class AdminVehicleCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vehicle
-        fields = ['vehicle_data', 'purchase_price', 'retail_price', 'status_id', 'images']
+        
+        fields = [
+            'purchase_price', 'retail_price', 'status_id', 'images',
+            'make', 'model', 'year', 'version', 'license_plate', 'mileage', 
+            'color', 'seats', 'doors', 'power', 'engine_size',
+            'transmission_type_id', 'fuel_type_id', 'body_style_id', 'traction_type_id'
+        ]
 
     def create(self, validated_data):
         images_data = validated_data.pop('images', [])
-        vehicle_data_data = validated_data.pop('vehicle_data')
-        
+        status_instance = validated_data.pop('status_id')
+        purchase_price = validated_data.pop('purchase_price')
+        retail_price = validated_data.pop('retail_price')
+
+        fuel_instance = validated_data.pop('fuel_type_id')
+        trans_instance = validated_data.pop('transmission_type_id')
+        body_instance = validated_data.pop('body_style_id')
+        traction_instance = validated_data.pop('traction_type_id')
+
         with transaction.atomic():
-            vehicle_data_instance = VehicleData.objects.create(**vehicle_data_data)
-            
+            # Criar VehicleData
+            vehicle_data_instance = VehicleData.objects.create(
+                fuel_type=fuel_instance,
+                transmission_type=trans_instance,
+                body_style=body_instance,
+                traction_type=traction_instance,
+                **validated_data 
+            )
+
             vehicle_instance = Vehicle.objects.create(
                 vehicle_data=vehicle_data_instance,
-                **validated_data
+                status=status_instance,
+                purchase_price=purchase_price,
+                retail_price=retail_price
             )
-            
-            img_objects = [
-                VehicleImage(vehicle_data=vehicle_data_instance, image=img) 
-                for img in images_data
-            ]
-            VehicleImage.objects.bulk_create(img_objects) 
+
+            for i, img in enumerate(images_data):
+                VehicleImage.objects.create(
+                    vehicle_data=vehicle_data_instance,
+                    image=img,
+                    is_primary=(i == 0)
+                )
                 
         return vehicle_instance
+    
+    def update(self, instance, validated_data):
+        status_instance = validated_data.pop('status_id', None)
+        if status_instance:
+            instance.status = status_instance
+            
+        instance.purchase_price = validated_data.pop('purchase_price', instance.purchase_price)
+        instance.retail_price = validated_data.pop('retail_price', instance.retail_price)
+        
+        images_data = validated_data.pop('images', [])
+        
+        v_data = instance.vehicle_data
+        
+        if 'fuel_type_id' in validated_data:
+            v_data.fuel_type = validated_data.pop('fuel_type_id')
+        if 'transmission_type_id' in validated_data:
+            v_data.transmission_type = validated_data.pop('transmission_type_id')
+        if 'body_style_id' in validated_data:
+            v_data.body_style = validated_data.pop('body_style_id')
+        if 'traction_type_id' in validated_data:
+            v_data.traction_type = validated_data.pop('traction_type_id')
+
+        for attr, value in validated_data.items():
+            setattr(v_data, attr, value)
+
+        with transaction.atomic():
+            v_data.save()
+            instance.save()
+            
+            for img in images_data:
+                VehicleImage.objects.create(
+                    vehicle_data=v_data,
+                    image=img,
+                    is_primary=False 
+                )
+
+        return instance
 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:

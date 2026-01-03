@@ -9,14 +9,20 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react";
 
 export function Footer() {
-  const { isAuthenticated, isLoading } = useAuth(); // Usar o contexto
+  const { isAuthenticated } = useAuth(); 
 
-  if (isLoading) {
-      return null;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <footer className="border-t bg-background min-h-[200px]" />;
   }
-
 
   return (
     <footer className="border-t bg-background">
