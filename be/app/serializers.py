@@ -41,7 +41,7 @@ class VehicleDataSerializer(serializers.ModelSerializer):
     transmission_type = TransmissionTypeSerializer(read_only=True)
     traction_type = TractionTypeSerializer(read_only=True)
     images = VehicleImageSerializer(many=True, read_only=True) 
-
+    
     class Meta:
         model = VehicleData
         fields = '__all__'
@@ -67,21 +67,6 @@ class VehicleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vehicle
         fields = ['id', 'vehicle_data', 'retail_price', 'status', 'created_at']
-
-
-class AdminVehicleDataInputSerializer(serializers.ModelSerializer):
-    body_style_id = serializers.PrimaryKeyRelatedField(queryset=BodyStyle.objects.all(), source='body_style')
-    fuel_type_id = serializers.PrimaryKeyRelatedField(queryset=FuelType.objects.all(), source='fuel_type')
-    transmission_type_id = serializers.PrimaryKeyRelatedField(queryset=TransmissionType.objects.all(), source='transmission_type')
-    traction_type_id = serializers.PrimaryKeyRelatedField(queryset=TractionType.objects.all(), source='traction_type')
-
-    class Meta:
-        model = VehicleData
-        fields = [
-            'make', 'model', 'version', 'license_plate', 'mileage', 'color', 
-            'seats', 'doors', 'power', 'engine_size', 
-            'body_style_id', 'fuel_type_id', 'transmission_type_id', 'traction_type_id'
-        ]
 
 class AdminVehicleCreateSerializer(serializers.ModelSerializer):
     make = serializers.CharField(write_only=True)

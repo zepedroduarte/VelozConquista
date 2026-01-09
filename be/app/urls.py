@@ -6,6 +6,7 @@ router = DefaultRouter()
 
 router.register(r'vehicles', views.PublicVehicleViewSet, basename='vehicle-public')
 router.register(r'admin/vehicles', views.AdminVehicleViewSet, basename='vehicle-admin')
+router.register(r'admin/vehicle-images', views.AdminVehicleImageViewSet, basename='admin-vehicle-images')
 
 urlpatterns = [
     path('login/', views.LoginView.as_view(), name='api-login'),

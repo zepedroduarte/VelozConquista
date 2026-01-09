@@ -2,8 +2,8 @@ import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { MobileNav } from "./mobile-nav";
-import { ThemeToggle } from "./theme-toggle";
+import { MobileNav } from "./mobileNav";
+import { ThemeToggle } from "./themeToggle";
 
 export function Header() {
   return (

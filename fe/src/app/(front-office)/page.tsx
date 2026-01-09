@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ChevronRight } from "lucide-react"
-import { VehicleCard } from "@/components/app/VehicleCard" 
+import { VehicleCard } from "@/components/app/vehicleCard" 
 const FEATURED_VEHICLES = [
     {
         id: 1,

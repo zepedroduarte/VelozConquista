@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import api from '@/lib/axios';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -51,7 +51,7 @@ export default function NewVehiclePage() {
         bodyStyle,      
         tractionType,   
         status        
-    } = useVehicleOptions(); // Nota: Verifica se aqui tens 'fuelType' ou 'fuelTypes' no plural, ajusta conforme o teu context
+    } = useVehicleOptions();
 
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -135,7 +135,6 @@ export default function NewVehiclePage() {
         <main className="flex-1 py-10 px-4 bg-gray-50/50 min-h-screen">
             <div className="max-w-5xl mx-auto space-y-6">
                 
-                {/* Cabeçalho */}
                 <div className="flex items-center justify-between pb-4">
                     <div className="space-y-1">
                         <Link href="/admin/vehicles">
@@ -154,7 +153,6 @@ export default function NewVehiclePage() {
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                         
-                        {/* 1. Dados Principais */}
                         <Card className="border-none shadow-sm">
                             <CardHeader className="pb-4 border-b">
                                 <div className="flex items-center gap-2">
@@ -177,7 +175,6 @@ export default function NewVehiclePage() {
                                         <FormLabel>Estado</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                             <FormControl>
-                                                {/* w-full aplicado aqui */}
                                                 <SelectTrigger className="w-full">
                                                     <SelectValue placeholder="Selecione..." />
                                                 </SelectTrigger>
@@ -199,7 +196,6 @@ export default function NewVehiclePage() {
                             </CardContent>
                         </Card>
 
-                        {/* 2. Especificações e Categorias */}
                         <Card className="border-none shadow-sm">
                             <CardHeader className="pb-4 border-b">
                                 <div className="flex items-center gap-2">
@@ -208,7 +204,6 @@ export default function NewVehiclePage() {
                                 </div>
                             </CardHeader>
                             <CardContent className="pt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
-                                {/* Categorias - Com w-full nos SelectTriggers */}
                                 <FormField control={form.control} name="body_style_id" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Carroçaria</FormLabel>
@@ -266,7 +261,6 @@ export default function NewVehiclePage() {
                                     </FormItem>
                                 )} />
 
-                                {/* Specs Numéricas */}
                                 <FormField control={form.control} name="mileage" render={({ field }) => (
                                     <FormItem><FormLabel>Quilómetros</FormLabel><FormControl><div className="relative"><Gauge className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" /><Input type="number" className="pl-9" {...field} /></div></FormControl><FormMessage /></FormItem>
                                 )} />
@@ -287,7 +281,6 @@ export default function NewVehiclePage() {
                             </CardContent>
                         </Card>
 
-                        {/* 3. Financeiro */}
                         <Card className="border-none shadow-sm">
                             <CardHeader className="pb-4 border-b">
                                 <div className="flex items-center gap-2">
@@ -305,7 +298,6 @@ export default function NewVehiclePage() {
                             </CardContent>
                         </Card>
 
-                        {/* 4. Imagens */}
                         <Card className="border-none shadow-sm">
                             <CardHeader className="pb-4 border-b">
                                 <div className="flex items-center gap-2">

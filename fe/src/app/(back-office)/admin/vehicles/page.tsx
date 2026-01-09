@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { PlusCircle, Edit, Trash2, Search, DollarSign, Car } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Search, Car } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import api from "@/lib/axios";
 import { Vehicle, VehicleSchema } from "@/schemas/Vehicle";

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework.authtoken',
     'django_cleanup.apps.CleanupConfig', 
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -96,7 +97,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-    ]
+    ],
+    'PAGE_SIZE': 9,
 }
 
 WSGI_APPLICATION = 'be.wsgi.application'
