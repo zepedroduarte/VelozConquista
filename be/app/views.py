@@ -8,6 +8,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.viewsets import GenericViewSet
+from django_filters.rest_framework import DjangoFilterBackend 
+from rest_framework.filters import OrderingFilter 
 
 from .models import BodyStyle, FuelType, Status, TractionType, TransmissionType, Vehicle, Messages, VehicleImage
 from .serializers import (
@@ -91,8 +93,10 @@ class LogoutView(APIView):
 class PublicVehicleViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     queryset = Vehicle.objects.filter(status__name="Disponível").order_by('-created_at')
-    serializer_class = VehicleSerializer 
+    serializer_class = VehicleSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = VehicleFilter
+    ordering_fields = ['created_at', 'retail_price', 'vehicle_data__mileage']
     
 class AdminVehicleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser] 

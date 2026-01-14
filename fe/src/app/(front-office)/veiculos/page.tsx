@@ -8,20 +8,15 @@ import { VehicleCard } from "@/components/app/vehicleCard";
 import VehicleFilters, { SelectedFilters } from "@/components/app/vehicleFilters";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import api from "@/lib/axios";
+import { APIVehicleData } from "@/lib/types";
 
-interface Vehicle {
+export interface Vehicle {
     id: number;
-    make: string;
-    model: string;
-    year: number;
-    mileage: number;
-    transmission: string;
-    fuel: string;
-    engineSize: number;
-    price: number;
-    imageSrc: string;
+    retail_price: string; 
+    status: { id: number, name: string };
+    vehicle_data: APIVehicleData; 
+    created_at?: string;
 }
-
 
 export default function VehiclesPage() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -30,11 +25,13 @@ export default function VehiclesPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
 
+    const [resetKey, setResetKey] = useState(0);
+
     const [activeFilters, setActiveFilters] = useState<SelectedFilters>({
         bodyStyle: [], fuelType: [], transmissionType: [], tractionType: [], minPrice: "", maxPrice: ""
     });
     
-    const [ordering, setOrdering] = useState("-created_at"); // Ordenação padrão
+    const [ordering, setOrdering] = useState("-created_at");
 
     useEffect(() => {
         async function fetchVehicles() {
@@ -46,19 +43,23 @@ export default function VehiclesPage() {
                 params.append('ordering', ordering);
 
                 if (activeFilters.minPrice) params.append('min_price', activeFilters.minPrice);
-                if (activeFilters.maxPrice) params.append('max_price', activeFilters.maxPrice);       
+                if (activeFilters.maxPrice) params.append('max_price', activeFilters.maxPrice);      
                 if (activeFilters.fuelType.length) params.append('fuel_type', activeFilters.fuelType.join(','));
                 if (activeFilters.transmissionType.length) params.append('transmission', activeFilters.transmissionType.join(','));
                 if (activeFilters.bodyStyle.length) params.append('body_style', activeFilters.bodyStyle.join(','));
                 if (activeFilters.tractionType.length) params.append('traction', activeFilters.tractionType.join(','));
 
-                const response = await api.get(`/public/vehicles/?${params.toString()}`);
+                const response = await api.get(`/vehicles/?${params.toString()}`); 
                 
-                setVehicles(response.data.results);
-                setTotalCount(response.data.count);
-                
-                const pageSize = 9; 
-                setTotalPages(Math.ceil(response.data.count / pageSize));
+                if (response.data.results) {
+                    setVehicles(response.data.results);
+                    setTotalCount(response.data.count);
+
+                    const pageSize = 9; 
+                    setTotalPages(Math.ceil(response.data.count / pageSize));
+                } else {
+                    setVehicles(response.data);
+                }
 
             } catch (error) {
                 console.error("Erro ao carregar veículos:", error);
@@ -73,6 +74,11 @@ export default function VehiclesPage() {
     const handleFiltersUpdate = (filters: SelectedFilters) => {
         setActiveFilters(filters);
         setCurrentPage(1); 
+    };
+
+    const handleResetFilters = () => {
+        handleFiltersUpdate({ bodyStyle: [], fuelType: [], transmissionType: [], tractionType: [], minPrice: "", maxPrice: "" });
+        setResetKey(prev => prev + 1);
     };
 
     return (
@@ -91,7 +97,7 @@ export default function VehiclesPage() {
                             <ListFilter className="size-5 text-red-600" />
                             Filtrar por
                         </div>
-                        <VehicleFilters onFilterChange={handleFiltersUpdate} />
+                        <VehicleFilters key={resetKey} onFilterChange={handleFiltersUpdate} />                    
                     </aside>
                     
                     <div className="lg:col-span-3 space-y-6">                   
@@ -134,16 +140,16 @@ export default function VehiclesPage() {
                             <div className="flex justify-center py-20">
                                 <Loader2 className="h-10 w-10 animate-spin text-red-600" />
                             </div>
-                        ) : vehicles.length > 0 ? (
+                        ) : vehicles?.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                                {vehicles.map((vehicle) => (
+                                {vehicles?.map((vehicle) => (
                                     <VehicleCard key={vehicle.id} vehicle={vehicle} />
                                 ))}
                             </div>
                         ) : (
                             <div className="text-center py-20 bg-gray-50 rounded-lg">
                                 <p className="text-lg text-gray-500">Nenhum veículo encontrado com estes filtros.</p>
-                                <Button variant="link" onClick={() => handleFiltersUpdate({ bodyStyle: [], fuelType: [], transmissionType: [], tractionType: [], minPrice: "", maxPrice: "" })}>
+                                <Button variant="link" onClick={handleResetFilters}>
                                     Limpar Filtros
                                 </Button>
                             </div>
