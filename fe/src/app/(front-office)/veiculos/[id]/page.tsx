@@ -14,7 +14,6 @@ import { useEffect, useState, use, useCallback } from "react";
 import api from "@/lib/axios";
 import { APIVehicleData } from "@/lib/types"; 
 
-// --- INTERFACES ---
 export interface Vehicle {
     id: number;
     retail_price: string;
@@ -53,7 +52,6 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
     const [vehicle, setVehicle] = useState<Vehicle | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     
-    // Estados para a Galeria
     const [selectedImage, setSelectedImage] = useState<string>(""); 
     const [isLightboxOpen, setIsLightboxOpen] = useState(false); 
     const [currentImageIndex, setCurrentImageIndex] = useState(0); 
@@ -79,21 +77,14 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
         fetchVehicle();
     }, [id]);
 
-    // --- LÓGICA DA GALERIA CORRIGIDA ---
-
-    // 1. Obtemos as imagens reais
     const rawImages = vehicle?.vehicle_data.images || [];
-    
-    // 2. Definimos a galeria: se não houver imagens, a galeria contém a default
-    // Isto impede que o Lightbox abra vazio e crashe
+
     const galleryUrls = rawImages.length > 0 
         ? rawImages.map(img => getImageUrl(img.image)) 
         : ["/teste.png"]; 
 
-    // Lógica para o Lightbox (Popup)
     const openLightbox = () => {
         const index = galleryUrls.indexOf(selectedImage);
-        // Garante que o índice é válido, se não for (ex: -1), usa 0
         setCurrentImageIndex(index !== -1 ? index : 0);
         setIsLightboxOpen(true);
     };
@@ -108,11 +99,9 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
         setCurrentImageIndex((prev) => (prev - 1 + galleryUrls.length) % galleryUrls.length);
     }, [galleryUrls.length]);
 
-    // Lógica para a Imagem Principal (Sem Zoom)
     const handleNextMain = (e: React.MouseEvent) => {
         e.stopPropagation(); 
         const currentIndex = galleryUrls.indexOf(selectedImage);
-        // Proteção extra: se não encontrar a imagem atual, assume 0
         const safeIndex = currentIndex === -1 ? 0 : currentIndex;
         const nextIndex = (safeIndex + 1) % galleryUrls.length;
         setSelectedImage(galleryUrls[nextIndex]);
@@ -126,7 +115,6 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
         setSelectedImage(galleryUrls[prevIndex]);
     };
 
-    // Atalhos de teclado
     useEffect(() => {
         if (!isLightboxOpen) return;
 
@@ -164,7 +152,6 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
         <main className="flex-1 py-16 bg-white">
             <div className="w-[70vw] mx-auto space-y-10">
                 
-                {/* --- LIGHTBOX (POPUP) --- */}
                 {isLightboxOpen && (
                     <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4">
                         <button 
@@ -174,7 +161,6 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
                             <X className="size-8" />
                         </button>
 
-                        {/* Só mostra setas no lightbox se houver mais de 1 imagem */}
                         {galleryUrls.length > 1 && (
                             <button 
                                 onClick={(e) => { e.stopPropagation(); prevImageLightbox(); }}
@@ -192,7 +178,7 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
                                 className="object-contain"
                                 unoptimized={galleryUrls[currentImageIndex]?.includes("127.0.0.1")}
                             />
-                            {/* Só mostra contador se houver mais de 1 imagem */}
+
                             {galleryUrls.length > 1 && (
                                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-white/80 text-sm bg-black/50 px-3 py-1 rounded-full">
                                     {currentImageIndex + 1} / {galleryUrls.length}
@@ -211,9 +197,8 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
                     </div>
                 )}
 
-                {/* --- PÁGINA PRINCIPAL --- */}
                 <div className="flex flex-col gap-2">
-                    <Link href="/veiculos" passHref>
+                    <Link className="w-fit" href="/veiculos" passHref>
                         <Button variant="link" className="w-fit p-0 gap-1 text-primary hover:text-red-600">
                             <ChevronLeft className="size-4" /> Voltar ao Inventário
                         </Button>
@@ -228,10 +213,7 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     
-                    {/* GALERIA DE IMAGENS */}
                     <div className="lg:col-span-2 space-y-4">
-                        
-                        {/* IMAGEM PRINCIPAL (Com Setas de Navegação) */}
                         <div 
                             className="relative w-full aspect-video rounded-xl overflow-hidden shadow-lg bg-gray-100 border cursor-zoom-in group"
                             onClick={openLightbox}
@@ -251,8 +233,6 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
                                 </div>
                             </div>
 
-                            {/* --- SETAS DE NAVEGAÇÃO NA IMAGEM PRINCIPAL --- */}
-                            {/* Só aparecem se houver mais de 1 imagem real */}
                             {galleryUrls.length > 1 && (
                                 <>
                                     <button 
@@ -271,8 +251,6 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
                             )}
                         </div>
                         
-                        {/* Miniaturas */}
-                        {/* Só mostra se houver imagens reais (> 0) */}
                         {details.images && details.images.length > 0 && (
                             <div className="grid grid-cols-4 sm:grid-cols-5 gap-4">
                                 {details.images.map((img) => {
@@ -297,26 +275,17 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
                         )}
                     </div>
 
-                    {/* CARTÃO DE PREÇO E CTA */}
                     <div className="lg:col-span-1">
                         <Card className="p-6 top-24 shadow-xl bg-white border-border/50">
-                            <CardTitle className="text-3xl font-extrabold text-foreground border-b pb-4 flex justify-between items-center">
-                                {formatPrice(vehicle.retail_price)}
+                            <CardTitle className="text-3xl text-foreground border-b pb-4 flex justify-between items-center">
+                                <span className="font-extrabold">{formatPrice(vehicle.retail_price)}</span>
                                 <span className={`text-xs px-2 py-1 rounded-full ${vehicle.status.name === 'Disponível' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                     {vehicle.status.name}
                                 </span>
                             </CardTitle>
                             
                             <div className="space-y-6">
-                                <div className="space-y-2">
-                                    <p className="text-sm font-medium text-gray-900">Resumo:</p>
-                                    <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
-                                        <li>Ano: {details.year}</li>
-                                        <li>{formatMileage(details.mileage)}</li>
-                                        <li>{details.fuel_type.name}</li>
-                                    </ul>
-                                </div>
-
+                                
                                 <div className="space-y-3">
                                     <Link href="/contacto" passHref>
                                         <Button size="lg" className="w-full bg-red-600 hover:bg-red-700 text-white font-bold">

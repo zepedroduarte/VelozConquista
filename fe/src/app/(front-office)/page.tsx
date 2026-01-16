@@ -7,6 +7,7 @@ import { VehicleCard } from "@/components/app/vehicleCard"
 import { useEffect, useState } from "react"
 import api from "@/lib/axios"
 import { APIVehicleData } from "@/lib/types"
+import { useCompany } from "@/context/CompanyContext"
 
 export interface Vehicle {
     id: number;
@@ -19,6 +20,8 @@ export interface Vehicle {
 export default function Home() {
     const [featuredVehicles, setFeaturedVehicles] = useState<Vehicle[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    const { company } = useCompany();
 
     useEffect(() => {
         async function fetchFeatured() {
@@ -53,7 +56,7 @@ export default function Home() {
             <section className="relative bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-800 text-white py-32">
                 <div className="w-[70vw] mx-auto flex flex-col items-start justify-center">
                     <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
-                        Veloz Conquista
+                        {company?.name}
                     </h1>
                     <p className="mt-4 max-w-lg text-xl text-white/80">
                         Comércio de automóveis usados e semi-novos de confiança.
@@ -84,10 +87,10 @@ export default function Home() {
                 <div className="w-[70vw] mx-auto">
                     <div className="flex flex-col items-center text-center mb-12">
                         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-gray-900">
-                            Chegados Recentemente
+                            Últimas Entradas
                         </h2>
                         <p className="mt-4 text-lg text-muted-foreground max-w-2xl">
-                            Descubra as últimas novidades do nosso stock.
+                            Descubra as últimas novidades do nosso inventário.
                         </p>
                     </div>
                     

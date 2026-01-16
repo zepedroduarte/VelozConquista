@@ -10,9 +10,11 @@ import {
 } from "@/components/ui/accordion";
 import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
+import { useCompany } from "@/context/CompanyContext";
 
 export function Footer() {
   const { isAuthenticated } = useAuth(); 
+  const { company } = useCompany();
 
   const [mounted, setMounted] = useState(false);
 
@@ -29,19 +31,23 @@ export function Footer() {
       <div className="w-[70vw] mx-auto py-3 md:py-3 px-4">
         <div className="hidden md:grid grid-cols-1 gap-10 md:grid-cols-4">
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Veloz Conquista</h3>
+            <h3 className="text-xl font-semibold">{company?.name}</h3>
             <p className="text-sm text-muted-foreground">
               Comércio de automóveis usados e semi-novos.
             </p>
             <div className="flex items-center space-x-4">
-              <Link href="https://www.facebook.com/velozconquistalda" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
-                <Facebook className="h-5 w-5" />
-                <span className="sr-only">Facebook</span>
-              </Link>
-              <Link href="https://www.instagram.com/velozconquista/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
-                <Instagram className="h-5 w-5" />
-                <span className="sr-only">Instagram</span>
-              </Link>
+              {company?.facebook_url && (
+                <Link href={company.facebook_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                  <Facebook className="h-5 w-5" />
+                  <span className="sr-only">Facebook</span>
+                </Link>
+              )}
+              {company?.instagram_url && (
+                <Link href={company.instagram_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                  <Instagram className="h-5 w-5" />
+                  <span className="sr-only">Instagram</span>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -62,10 +68,9 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Contacto</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>Estrada De Sta Eulalia 1</li>
-                <li>Ponte Lousa</li>
-                <li>Telefone: 918630374</li>
-                <li>Email: velozconquista@gmail.com</li>
+                <li>{company?.address}</li>
+                <li>{company?.phone}</li>
+                <li>{company?.email}</li>
             </ul>
           </div>
 

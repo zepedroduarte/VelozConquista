@@ -1,11 +1,15 @@
+'use client';
+
 import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { MobileNav } from "./mobileNav";
-import { ThemeToggle } from "./themeToggle";
+import { useCompany } from "@/context/CompanyContext";
 
 export function Header() {
+  const { company } = useCompany();
+
   return (
     <header className="sticky w-full border-b bg-background backdrop-blur h-16 flex items-center px-4">
       <Sheet>
@@ -17,7 +21,6 @@ export function Header() {
         </SheetTrigger>
         <SheetContent side="left" className="pr-0">
           <MobileNav />
-          <ThemeToggle /> 
         </SheetContent>
       </Sheet>
 
@@ -25,7 +28,7 @@ export function Header() {
         
         <div className="flex items-center space-x-6">
              <Link href="/" className="flex items-center space-x-2">
-                <span className="font-bold text-xl">Veloz Conquista</span>
+                <span className="font-bold text-xl">{company?.name}</span>
              </Link>
              <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
                 <Link href="/veiculos" className="transition-colors hover:text-foreground/80">
@@ -38,10 +41,6 @@ export function Header() {
                   Contacto
                 </Link>
              </nav>
-        </div>
-
-        <div className="hidden md:flex items-center space-x-2">
-            <ThemeToggle /> 
         </div>
       </div>
     </header>

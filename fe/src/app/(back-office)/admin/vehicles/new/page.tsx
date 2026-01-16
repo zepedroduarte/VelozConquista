@@ -118,9 +118,7 @@ export default function NewVehiclePage() {
                 });
             }
 
-            await api.post('/admin/vehicles/', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            await api.post('/admin/vehicles/', formData);
 
             router.push('/admin/vehicles');
             router.refresh();
@@ -206,7 +204,7 @@ export default function NewVehiclePage() {
                             <CardContent className="pt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
                                 <FormField control={form.control} name="body_style_id" render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Carroçaria</FormLabel>
+                                        <FormLabel>Segmento</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                             <FormControl>
                                                 <SelectTrigger className="w-full">

@@ -2,14 +2,14 @@
 
 import { useAuth } from "@/context/AuthContext"; 
 import { useRouter } from "next/navigation"; 
-import { useEffect, useState } from "react"; 
+import { useEffect } from "react"; 
 import api from '@/lib/axios';
-import Cookies from 'js-cookie';
 import { AdminSidebar } from "@/components/app/adminSidebar";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { isAuthenticated, logout } = useAuth();
     const router = useRouter();
+
 
     useEffect(() => {
         const checkSecurity = async () => {

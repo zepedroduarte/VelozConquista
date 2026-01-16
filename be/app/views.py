@@ -1,7 +1,8 @@
+from django.utils import timezone
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 import django_filters
-from rest_framework import viewsets, permissions, status, mixins
+from rest_framework import viewsets, status, mixins, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
@@ -10,10 +11,15 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.viewsets import GenericViewSet
 from django_filters.rest_framework import DjangoFilterBackend 
 from rest_framework.filters import OrderingFilter 
+from django.core.mail import send_mail
+from django.conf import settings
+from rest_framework.throttling import AnonRateThrottle
+from django.utils.html import strip_tags
 
-from .models import BodyStyle, FuelType, Status, TractionType, TransmissionType, Vehicle, Messages, VehicleImage
+from .models import BodyStyle, CompanySettings, FuelType, Status, TractionType, TransmissionType, Vehicle, Messages, VehicleImage
 from .serializers import (
     BodyStyleSerializer,
+    CompanySettingsSerializer,
     FuelTypeSerializer,
     StatusSerializer,
     TractionTypeSerializer,
@@ -134,20 +140,57 @@ class AdminVehicleViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Status Vendido não encontrado'}, status=400)       
     
 class AdminVehicleImageViewSet(mixins.DestroyModelMixin, GenericViewSet):
-
     permission_classes = [IsAdminUser]
     queryset = VehicleImage.objects.all()
     serializer_class = VehicleImageSerializer    
 
-class MessageCreateViewSet(viewsets.GenericViewSet):
+class CompanySettingsView(APIView):
+    permission_classes = [AllowAny] 
+
+    def get(self, request):
+        settings = CompanySettings.load()
+        serializer = CompanySettingsSerializer(settings, context={'request': request})
+        return Response(serializer.data)
+
+class MessageCreateViewSet(generics.CreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = MessageSerializer
+    throttle_classes = [AnonRateThrottle]
 
-    def create(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(
-            {"detail": "Mensagem enviada com sucesso."}, 
-            status=status.HTTP_201_CREATED
-        )
+    def perform_create(self, serializer):
+        instance = serializer.save(message_date=timezone.now())
+
+        clean_name = strip_tags(instance.sender_name)
+        clean_subject = strip_tags(instance.subject)
+        clean_body = strip_tags(instance.body)
+
+        # 3. Configuração do Email
+        company_conf = CompanySettings.load()
+        destination_email = company_conf.email
+
+        email_subject = f"Nova Mensagem Site: {clean_subject}"
+        
+        email_body = f"""
+        Recebeste uma nova mensagem através do site Veloz Conquista.
+
+        Nome: {clean_name}
+        Email: {instance.sender_email}
+        
+        Assunto: {clean_subject}
+        ----------------------------------------------------
+        Mensagem:
+        {clean_body}
+        """
+
+        # 4. Envio
+        try:
+            send_mail(
+                subject=email_subject,
+                message=email_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[destination_email],    
+                fail_silently=False,
+            )
+            print("Email enviado com sucesso.")
+        except Exception as e:
+            print(f"Erro ao enviar email: {e}")

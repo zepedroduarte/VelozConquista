@@ -27,3 +27,15 @@ export interface APIVehicleData {
     traction_type?: APIVehicleOption;
     images: APIVehicleImage[];
 }
+
+export interface CompanySettings {
+    name: string;
+    description: string;
+    phone: string;
+    email: string;
+    address: string;
+    facebook_url?: string;
+    instagram_url?: string;
+    whatsapp_number?: string;
+    logo?: string;
+}

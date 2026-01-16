@@ -4,6 +4,33 @@ from django.dispatch import receiver
 from django.db.models.signals import post_delete
 from .utils import vehicle_image_upload_path
 
+class CompanySettings(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    phone = models.CharField(max_length=20)
+    email = models.EmailField()
+    address = models.CharField(max_length=200)
+    
+    facebook_url = models.URLField(blank=True, null=True)
+    instagram_url = models.URLField(blank=True, null=True)
+    whatsapp_number = models.CharField(max_length=20, blank=True, null=True)
+
+    logo = models.ImageField(upload_to='company/', blank=True, null=True)
+    class Meta:
+        verbose_name = "Definições da Empresa"
+        verbose_name_plural = "Definições da Empresa"
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super(CompanySettings, self).save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
 
 class BodyStyle(models.Model):
     name = models.CharField(max_length=50)
@@ -17,7 +44,6 @@ class FuelType(models.Model):
     
     def __str__(self):
         return self.name
-
 
 class TransmissionType(models.Model):
     name = models.CharField(max_length=50)

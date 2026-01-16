@@ -11,7 +11,8 @@ router.register(r'admin/vehicle-images', views.AdminVehicleImageViewSet, basenam
 urlpatterns = [
     path('login/', views.LoginView.as_view(), name='api-login'),
     path('logout/', views.LogoutView.as_view(), name='api-logout'),
-    path('messages/', views.MessageCreateViewSet.as_view({'post': 'create'}), name='message-submit'),
+    path('messages/', views.MessageCreateViewSet.as_view(), name='message-submit'),
     path('vehicle-attributes/', views.VehicleAttributesView.as_view(), name='vehicle-attributes'),
+    path('company-settings/', views.CompanySettingsView.as_view(), name='company-settings'),
     path('', include(router.urls)), 
 ]

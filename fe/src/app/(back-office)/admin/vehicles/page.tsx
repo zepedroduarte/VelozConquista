@@ -146,7 +146,7 @@ export default function AdminVehiclesPage() {
                         <table className="min-w-full divide-y divide-border">
                             <thead className="bg-muted/50">
                                 <tr>
-                                    {['ID', 'Matrícula', 'Marca/Modelo', 'Status', 'Custo', 'Venda', 'Ações'].map(header => (
+                                    {['ID', 'Matrícula', 'Marca/Modelo', 'Status', 'Dia Adicionado', 'Custo', 'Venda', 'Ações'].map(header => (
                                         <th 
                                             key={header} 
                                             className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
@@ -189,6 +189,10 @@ export default function AdminVehiclesPage() {
                                                 >
                                                     {vehicle.status.name}
                                                 </span>
+                                            </td>
+
+                                            <td className="px-4 py-3 whitespace-nowrap text-sm text-muted-foreground">
+                                                {vehicle.created_at.trim() === '' ? 'N/A' : new Date(vehicle.created_at).toLocaleDateString('pt-PT')}
                                             </td>
                                             
                                             <td className="px-4 py-3 whitespace-nowrap text-sm text-muted-foreground">
@@ -246,8 +250,6 @@ export default function AdminVehiclesPage() {
                             </tbody>
                         </table>
                     </div>
-
-                    {/* PAGINAÇÃO */}
                     {totalCount > 0 && (
                         <div className="flex items-center justify-between pt-4">
                             <div className="text-sm text-muted-foreground">

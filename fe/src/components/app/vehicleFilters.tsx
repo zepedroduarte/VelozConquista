@@ -89,7 +89,7 @@ export default function VehicleFilters({ onFilterChange }: { onFilterChange?: (f
 
             <FilterAccordion title="Combustível" valueKey="fuel" options={fuelType} selectedValues={selected.fuelType} onToggle={(id) => handleToggle('fuelType', id)} />
             <FilterAccordion title="Caixa" valueKey="trans" options={transmissionType} selectedValues={selected.transmissionType} onToggle={(id) => handleToggle('transmissionType', id)} />
-            <FilterAccordion title="Carroçaria" valueKey="body" options={bodyStyle} selectedValues={selected.bodyStyle} onToggle={(id) => handleToggle('bodyStyle', id)} />
+            <FilterAccordion title="Segmento" valueKey="body" options={bodyStyle} selectedValues={selected.bodyStyle} onToggle={(id) => handleToggle('bodyStyle', id)} />
             <FilterAccordion title="Tração" valueKey="trac" options={tractionType} selectedValues={selected.tractionType} onToggle={(id) => handleToggle('tractionType', id)} />
         
             <Button 

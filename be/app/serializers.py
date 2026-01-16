@@ -1,9 +1,14 @@
 from rest_framework import serializers
 from django.db import transaction
 from .models import (
-    Vehicle, VehicleData, Status, BodyStyle, FuelType, 
+    CompanySettings, Vehicle, VehicleData, Status, BodyStyle, FuelType, 
     TransmissionType, TractionType, Messages, VehicleImage
 )
+
+class CompanySettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanySettings
+        fields = '__all__'
 
 class StatusSerializer(serializers.ModelSerializer):
     class Meta:

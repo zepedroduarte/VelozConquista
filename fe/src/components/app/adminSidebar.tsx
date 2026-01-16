@@ -3,6 +3,7 @@ import { Car, DollarSign, Users, Wrench, MessageSquare, List, Home, LogOut, Chev
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { useCompany } from "@/context/CompanyContext";
 
 const navItems = [
     { href: "/admin/dashboard", label: "Dashboard", icon: Home },
@@ -15,6 +16,7 @@ const navItems = [
 ];
 
 export function AdminSidebar() {
+    const { company } = useCompany();
     const { logout } = useAuth(); 
     const router = useRouter();
 
@@ -28,7 +30,7 @@ export function AdminSidebar() {
             
             <div className="mb-8 pt-2 pb-4 border-b border-sidebar-border">
                 <Link href="/admin/dashboard" className="text-xl font-bold text-red-600">
-                    Veloz Conquista <span className="text-sm font-light text-foreground/70">Admin</span>
+                    {company?.name} <span className="text-sm font-light text-foreground/70">Admin</span>
                 </Link>
             </div>
 

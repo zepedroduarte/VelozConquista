@@ -11,6 +11,8 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react"; 
+import { useCompany } from "@/context/CompanyContext";
+import api from "@/lib/axios";
 
 const ContactFormSchema = z.object({
     name: z.string().min(2, "O nome é obrigatório."),
@@ -23,16 +25,9 @@ type ContactFormValues = z.infer<typeof ContactFormSchema>;
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
-    
-  const contactData = {
-      phone: "918 630 374", 
-      email: "velozconquista@gmail.com",
-      adress1: "Estrada De Sta Eulalia 1",
-      adress2: "Ponte Lousa",
-      facebook: "https://www.facebook.com/velozconquistalda",
-      instagram: "https://www.instagram.com/velozconquista/",
-  }
 
+  const { company } = useCompany();
+    
   const form = useForm<ContactFormValues>({
       resolver: zodResolver(ContactFormSchema),
       defaultValues: {
@@ -44,10 +39,23 @@ export default function Contact() {
   });
 
   async function onSubmit(values: ContactFormValues) {
-      // 🚨 EM PRODUÇÃO: Faria um POST para /api/messages/
-      console.log("Formulário Submetido:", values);
-      setSubmitted(true);
-      form.reset();
+      try {
+          const payload = {
+              sender_name: values.name,
+              sender_email: values.email,
+              subject: values.subject,
+              body: values.message,
+          };
+
+          await api.post('/messages/', payload);
+          
+          setSubmitted(true);
+          form.reset();
+
+
+      } catch (error) {
+          console.error("Erro ao enviar mensagem:", error);
+      }
   }
 
   return (
@@ -60,38 +68,33 @@ export default function Contact() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <div className="space-y-6">
-              {/* Bloco de Contactos (Mantido) */}
-              <div className="space-y-4">
-                <h2 className="text-2xl font-semibold mb-2 border-b-2 border-red-600 inline-block pb-1">
-                  Ligue ou Visite
-                </h2>
+              <div className="space-y-4">          
                 
                 <div className="flex items-center space-x-3 text-lg">
                   <Phone className="w-5 h-5 text-red-600 shrink-0" />
                   <span className="text-foreground">
-                    {contactData.phone}
+                    {company?.phone} <span className="italic">(Chamada para rede móvel nacional)</span>
                   </span>
                 </div>
 
                 <div className="flex items-center space-x-3 text-lg">
                   <Mail className="w-5 h-5 text-red-600 shrink-0" />
                   <span className="text-foreground">
-                    {contactData.email}
+                    {company?.email}
                   </span>
                 </div>
                 
                 <div className="flex space-x-3 text-lg items-start">
                   <MapPin className="w-5 h-5 text-red-600 shrink-0 mt-1" />
                   <address className="not-italic flex flex-col">
-                    <span className="text-foreground">{contactData.adress1}</span>
-                    <span className="text-foreground">{contactData.adress2}</span>
+                    <span className="text-foreground">{company?.address}</span>
                   </address>
                 </div>
               </div>
 
               <div className="pt-4 flex items-center space-x-4">
                 <Link 
-                  href={contactData.facebook} 
+                  href={company?.facebook_url || "#"} 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-foreground hover:text-red-600 transition-colors"
@@ -99,7 +102,7 @@ export default function Contact() {
                   <Facebook className="h-7 w-7" />
                 </Link>
                 <Link 
-                  href={contactData.instagram} 
+                  href={company?.instagram_url || "#"} 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-foreground hover:text-red-600 transition-colors"
