@@ -1,8 +1,6 @@
 'use client'
 
-import Image from "next/image";
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
 import { useCompany } from "@/context/CompanyContext";
 
 export default function About() {
@@ -30,21 +28,6 @@ export default function About() {
                             </p>
                         );
                     })}
-                
-                    <Card className="p-4 shadow-sm bg-card/70 border-l-4 border-red-600 mt-6">
-                        <CardContent className="p-0 flex items-center gap-4">
-                            <Image
-                                src="/logo.png" 
-                                width={60}
-                                height={60}
-                                alt="Logo Veloz Conquista"
-                                className="rounded-full shrink-0"
-                            />
-                            <div className="text-sm">
-                                <p className="text-muted-foreground">Especialistas em financiamento e intermediação.</p>
-                            </div>
-                        </CardContent>
-                    </Card>
                 </div>
             </div>
 

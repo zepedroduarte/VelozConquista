@@ -1,8 +1,10 @@
 import os
+import cloudinary.api
 from django.db import models
 from django.dispatch import receiver
 from django.db.models.signals import post_delete
 from .utils import vehicle_image_upload_path
+from django.utils.text import slugify
 
 class CompanySettings(models.Model):
     name = models.CharField(max_length=100)
@@ -138,16 +140,23 @@ class Messages(models.Model):
     subject = models.CharField(max_length=255)
     body = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-
-@receiver(post_delete, sender=VehicleImage)
-def delete_empty_folder(sender, instance, **kwargs):
-    if instance.image:
-        try:
-            file_dir = os.path.dirname(instance.image.path)
             
-            if os.path.isdir(file_dir):
-                if not os.listdir(file_dir):
-                    os.rmdir(file_dir) 
-                    print(f"Pasta vazia removida: {file_dir}")
-        except Exception as e:
-            print(f"Erro ao tentar apagar pasta vazia: {e}")
+@receiver(post_delete, sender=VehicleData)
+def delete_cloudinary_folder(sender, instance, **kwargs):
+    safe_make = slugify(instance.make)
+    safe_model = slugify(instance.model)
+    safe_plate = slugify(instance.license_plate)
+    folder_path = f"media/vehicles/{safe_make}-{safe_model}-{safe_plate}"
+
+    print(f"🗑️ A tentar apagar pasta no Cloudinary: {folder_path}")
+
+    try:
+        cloudinary.api.delete_resources_by_prefix(folder_path)
+        cloudinary.api.delete_folder(folder_path)
+        print(f"✅ Pasta {folder_path} apagada com sucesso!")
+        
+    except Exception as e:
+        print(f"⚠️ Aviso: Não foi possível apagar a pasta {folder_path}. Erro: {e}")           
+            
+            
+            

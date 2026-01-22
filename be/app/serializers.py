@@ -130,7 +130,6 @@ class AdminVehicleCreateSerializer(serializers.ModelSerializer):
         traction_instance = validated_data.pop('traction_type_id')
 
         with transaction.atomic():
-            # Criar VehicleData
             vehicle_data_instance = VehicleData.objects.create(
                 fuel_type=fuel_instance,
                 transmission_type=trans_instance,

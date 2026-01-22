@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { PlusCircle, Edit, Trash2, Search, Car, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import api from "@/lib/axios";
 import { Vehicle, VehicleSchema } from "@/schemas/Vehicle";
 import z from "zod";
@@ -27,47 +27,56 @@ export default function AdminVehiclesPage() {
     const [isLoading, setIsLoading] = useState(true);
     
     const [currentPage, setCurrentPage] = useState(1);
+    const currentPageRef = useRef(currentPage);
+    
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            fetchData(1, searchTerm); 
-        }, 500);
-
-        return () => clearTimeout(timer);
-    }, [searchTerm]);
-
-    useEffect(() => {
-        fetchData(currentPage, searchTerm);
-    }, [currentPage]);
-
-    async function fetchData(page: number, search: string) {
+    const fetchData = useCallback(async (page: number, search: string) => {
         setIsLoading(true);
         try {
             const params = new URLSearchParams();
             params.append('page', page.toString());
-            if (search) params.append('search', search); 
+            if (search) params.append('search', search);
 
             const response = await api.get(`/admin/vehicles/?${params.toString()}`);
 
             const validatedData = z.array(VehicleSchema).parse(response.data.results);
-            setVehicles(validatedData);
             
+            setVehicles(validatedData);
             setTotalCount(response.data.count);
-          
-            const pageSize = 9; 
+            
+            const pageSize = 9;
             setTotalPages(Math.ceil(response.data.count / pageSize));
 
-            if (currentPage !== page) setCurrentPage(page);
 
         } catch (error) {
             console.error("Erro ao carregar veículos:", error);
         } finally {
             setIsLoading(false);
         }
-    }
+    }, []); 
+
+    useEffect(() => {
+        currentPageRef.current = currentPage;
+    }, [currentPage]);
+    
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (currentPageRef.current !== 1) {
+                setCurrentPage(1); 
+            } else {
+                fetchData(1, searchTerm);
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchTerm, fetchData]);
+
+    useEffect(() => {
+        fetchData(currentPage, searchTerm);
+    }, [currentPage, fetchData, searchTerm]);
 
     const handleDelete = async (id: number) => {
         try {

@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.viewsets import GenericViewSet
 from django_filters.rest_framework import DjangoFilterBackend 
-from rest_framework.filters import OrderingFilter 
+from rest_framework.filters import OrderingFilter, SearchFilter
 from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.throttling import AnonRateThrottle
@@ -108,6 +108,14 @@ class AdminVehicleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser] 
     queryset = Vehicle.objects.all().order_by('-created_at')
     parser_classes = [MultiPartParser, FormParser, JSONParser] 
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    
+    search_fields = [
+        'vehicle_data__make', 
+        'vehicle_data__model', 
+        'vehicle_data__version', 
+        'vehicle_data__license_plate',
+    ]
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -164,7 +172,6 @@ class MessageCreateViewSet(generics.CreateAPIView):
         clean_subject = strip_tags(instance.subject)
         clean_body = strip_tags(instance.body)
 
-        # 3. Configuração do Email
         company_conf = CompanySettings.load()
         destination_email = company_conf.email
 

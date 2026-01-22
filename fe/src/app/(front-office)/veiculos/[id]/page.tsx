@@ -61,6 +61,8 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
             try {
                 const response = await api.get(`/vehicles/${id}/`);
                 setVehicle(response.data);
+
+                console.log("Vehicle data:", response.data.vehicle_data.images);
                 
                 const images = response.data.vehicle_data.images;
                 if (images && images.length > 0) {

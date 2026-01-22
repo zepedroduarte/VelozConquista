@@ -20,7 +20,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             try {
                 await api.get('/admin/vehicles/'); 
-            } catch (err) {
+            } catch {
                 logout();
             }
         };

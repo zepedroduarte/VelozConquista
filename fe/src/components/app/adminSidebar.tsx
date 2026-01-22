@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Car, DollarSign, Users, Wrench, MessageSquare, List, Home, LogOut, ChevronLeft, Globe } from "lucide-react";
+import { Car, DollarSign, Users, Wrench, MessageSquare, List, Home, LogOut, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";

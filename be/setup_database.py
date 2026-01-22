@@ -7,14 +7,14 @@ django.setup()
 from app.models import CompanySettings, VehicleData, Customer, Logs, Messages
 
 def run():
-    # print("⚠️  A iniciar limpeza e configuração da Base de Dados...")
+    print("⚠️  A iniciar limpeza e configuração da Base de Dados...")
 
-    # Logs.objects.all().delete()
-    # Messages.objects.all().delete()
-    # Customer.objects.all().delete()
-    # VehicleData.objects.all().delete()
+    Logs.objects.all().delete()
+    Messages.objects.all().delete()
+    Customer.objects.all().delete()
+    VehicleData.objects.all().delete()
     
-    # print("✅ Limpeza concluída.")
+    print("✅ Limpeza concluída.")
 
     print("⚙️  A configurar empresa...")
     
