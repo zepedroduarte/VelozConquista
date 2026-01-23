@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; 
 import { ListFilter, Loader2 } from "lucide-react"; 
 import { useState, useEffect } from 'react'; 
-import { VehicleCard } from "@/components/app/vehicleCard"; 
+import { VehicleCard } from "@/components/app/VehicleCard"; 
 import VehicleFilters, { SelectedFilters } from "@/components/app/vehicleFilters";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import api from "@/lib/axios";

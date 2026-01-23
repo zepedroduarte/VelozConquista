@@ -20,6 +20,8 @@ interface VehicleCardProps {
     vehicle: Vehicle; 
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
 function formatPrice(price: string | number): string {
     const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
     return numericPrice?.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 });
@@ -31,9 +33,10 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
 
     let imageUrl = "/teste.png"; 
     if (details.images && details.images.length > 0) {
-        imageUrl = details.images[0].image;
-        if (imageUrl.startsWith('/media')) {
-            imageUrl = `http://127.0.0.1:8000${imageUrl}`;
+        if (details.images[0].image.startsWith('http')) {
+             imageUrl = details.images[0].image;
+        } else {
+             imageUrl = `${API_URL}${details.images[0].image}`;
         }
     }
 

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ChevronRight, Loader2 } from "lucide-react"
-import { VehicleCard } from "@/components/app/vehicleCard" 
+import { VehicleCard } from "@/components/app/VehicleCard"
 import { useEffect, useState } from "react"
 import api from "@/lib/axios"
 import { APIVehicleData } from "@/lib/types"
