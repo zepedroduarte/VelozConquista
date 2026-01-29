@@ -15,8 +15,6 @@ from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.throttling import AnonRateThrottle
 from django.utils.html import strip_tags
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.utils.decorators import method_decorator
 
 from .models import BodyStyle, CompanySettings, FuelType, Status, TractionType, TransmissionType, Vehicle, Messages, VehicleImage
 from .serializers import (
@@ -33,12 +31,6 @@ from .serializers import (
     MessageSerializer
 )
 
-@method_decorator(ensure_csrf_cookie, name='dispatch')
-class CSRFPingView(APIView):
-    permission_classes = [AllowAny] 
-
-    def get(self, request):
-        return Response({'message': 'CSRF cookie set'})
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
