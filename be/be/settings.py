@@ -75,21 +75,21 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
 ]
 
-if os.getenv('FRONTEND_URL'):
-    production_url = os.getenv('FRONTEND_URL')
-    CORS_ALLOWED_ORIGINS.append(production_url)
-    
-    CSRF_TRUSTED_ORIGINS = [production_url]
-else:
-    CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+CSRF_TRUSTED_ORIGINS = [
+    'https://veloz-conquista.vercel.app',
+    'https://velozconquista-production.up.railway.app',
+]
 
 # --- Cookies ---
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'Lax'
+
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True 
 CSRF_COOKIE_HTTPONLY = False
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 TEMPLATES = [
     {
