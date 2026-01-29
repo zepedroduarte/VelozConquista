@@ -14,6 +14,6 @@ urlpatterns = [
     path('messages/', views.MessageCreateViewSet.as_view(), name='message-submit'),
     path('vehicle-attributes/', views.VehicleAttributesView.as_view(), name='vehicle-attributes'),
     path('company-settings/', views.CompanySettingsView.as_view(), name='company-settings'),
-    path('api/csrf/', views.CSRFPingView.as_view(), name='csrf-ping'),
+    path('csrf/', views.CSRFPingView.as_view(), name='csrf-ping'),
     path('', include(router.urls)), 
 ]
