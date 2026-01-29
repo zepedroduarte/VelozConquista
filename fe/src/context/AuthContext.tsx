@@ -2,7 +2,7 @@
 
 import { createContext, useState, useContext, ReactNode } from 'react';
 import api from '@/lib/axios';
-import Cookies from 'js-cookie';
+import Cookies from 'js-cookie'; // <--- Vamos usar isto agora
 
 type LoginValues = Record<'username' | 'password', string>;
 
@@ -19,10 +19,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (values: LoginValues) => {
     try {
-
       await api.get('/csrf/'); 
 
-      await api.post('/login/', values);
+      const csrfToken = Cookies.get('csrftoken');
+
+      console.log("Token lido do browser:", csrfToken); 
+
+      await api.post('/login/', values, {
+        headers: {
+            'X-CSRFToken': csrfToken 
+        }
+      });
       
       Cookies.set('is_logged_in', 'true', { expires: 1, secure: true }); 
       setIsAuthenticated(true);
@@ -35,7 +42,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try { 
-      await api.post('/logout/'); 
+        // Também convém enviar no logout, por via das dúvidas
+        const csrfToken = Cookies.get('csrftoken');
+        await api.post('/logout/', {}, {
+            headers: { 'X-CSRFToken': csrfToken }
+        }); 
     } finally { 
       Cookies.remove('is_logged_in');
       setIsAuthenticated(false); 
