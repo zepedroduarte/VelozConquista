@@ -4,8 +4,8 @@ import { createContext, useState, useContext, ReactNode } from 'react';
 import api from '@/lib/axios';
 import Cookies from 'js-cookie';
 
-
 type LoginValues = Record<'username' | 'password', string>;
+
 interface AuthContextType {
   isAuthenticated: boolean;
   login: (values: LoginValues) => Promise<boolean>;
@@ -19,11 +19,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (values: LoginValues) => {
     try {
+
+      await api.get('/csrf/'); 
+
       await api.post('/login/', values);
+      
       Cookies.set('is_logged_in', 'true', { expires: 1, secure: true }); 
       setIsAuthenticated(true);
       return true;
-    } catch { return false; }
+    } catch (error) { 
+      console.error("Erro no login:", error);
+      return false; 
+    }
   };
 
   const logout = async () => {
