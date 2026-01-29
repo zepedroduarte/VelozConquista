@@ -5,7 +5,7 @@ import django_filters
 from rest_framework import viewsets, status, mixins, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.decorators import action, method_decorator
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.viewsets import GenericViewSet
@@ -16,6 +16,7 @@ from django.conf import settings
 from rest_framework.throttling import AnonRateThrottle
 from django.utils.html import strip_tags
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.decorators import method_decorator
 
 from .models import BodyStyle, CompanySettings, FuelType, Status, TractionType, TransmissionType, Vehicle, Messages, VehicleImage
 from .serializers import (
