@@ -1,4 +1,6 @@
+import os
 from django.core.management.base import BaseCommand
+from django.contrib.auth import get_user_model
 from app.models import (
     CompanySettings, VehicleData, Customer, Logs, Messages, 
     FuelType, TransmissionType, TractionType, BodyStyle, Status
@@ -18,6 +20,20 @@ class Command(BaseCommand):
         # Customer.objects.all().delete()
         # VehicleData.objects.all().delete()
         # self.stdout.write("✅ Limpeza concluída.")
+
+        self.stdout.write("🔐 A verificar superuser...")
+        
+        User = get_user_model()
+        username = os.getenv('DJANGO_SUPERUSER_USERNAME', 'velozconquista')
+        password = os.getenv('DJANGO_SUPERUSER_PASSWORD') 
+
+        if password and User.objects.filter(username=username).exists():
+            user = User.objects.get(username=username)
+            user.set_password(password)
+            user.save()
+            self.stdout.write(f"✅ Password do utilizador '{username}' atualizada forçosamente!")
+        else:
+            self.stdout.write("⚠️ Não foi possível atualizar a password (variável em falta ou user não existe).")
 
         # --- FASE 2: Dados Estáticos (Combustíveis, Caixas, etc.) ---
         self.stdout.write("⚙️  A criar dados estáticos (Fuel, Transmission, etc)...")
