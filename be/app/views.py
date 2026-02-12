@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
@@ -15,6 +16,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.throttling import AnonRateThrottle
 from django.utils.html import strip_tags
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from .models import BodyStyle, CompanySettings, FuelType, Status, TractionType, TransmissionType, Vehicle, Messages, VehicleImage
 from .serializers import (
@@ -30,6 +32,10 @@ from .serializers import (
     AdminVehicleReadSerializer, 
     MessageSerializer
 )
+
+@ensure_csrf_cookie
+def csrf(request):
+    return JsonResponse({"detail": "CSRF cookie set"})
 
 class LoginView(APIView):
     permission_classes = [AllowAny]

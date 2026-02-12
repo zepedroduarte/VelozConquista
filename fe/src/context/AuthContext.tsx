@@ -19,6 +19,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (values: LoginValues) => {
     try {
+      await api.get("/csrf/");
       await api.post('/login/', values);
       
       Cookies.set('is_logged_in', 'true', { expires: 1, secure: true }); 
@@ -32,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try { 
+      await api.get("/csrf/");
       await api.post('/logout/'); 
     } finally { 
       Cookies.remove('is_logged_in');
