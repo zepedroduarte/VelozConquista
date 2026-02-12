@@ -15,15 +15,20 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!Cookies.get('is_logged_in'));
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("access"));
 
   const login = async (values: LoginValues) => {
     try {
-      await api.get("/csrf/");
-      await api.post('/login/', values);
-      
-      Cookies.set('is_logged_in', 'true', { expires: 1, secure: true }); 
+      const res = await api.post("/token/", {
+        username: values.username,
+        password: values.password,
+      });
+
+      localStorage.setItem("access", res.data.access);
+      localStorage.setItem("refresh", res.data.refresh);
+
       setIsAuthenticated(true);
+
       return true;
     } catch (error) { 
       console.error("Erro no login:", error);
@@ -33,8 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try { 
-      await api.get("/csrf/");
-      await api.post('/logout/'); 
+      localStorage.removeItem("access");
+      localStorage.removeItem("refresh");
     } finally { 
       Cookies.remove('is_logged_in');
       setIsAuthenticated(false); 

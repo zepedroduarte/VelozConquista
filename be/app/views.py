@@ -1,13 +1,11 @@
 from django.http import JsonResponse
 from django.utils import timezone
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
 import django_filters
-from rest_framework import viewsets, status, mixins, generics
+from rest_framework import viewsets, mixins, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.viewsets import GenericViewSet
 from django_filters.rest_framework import DjangoFilterBackend 
@@ -17,9 +15,11 @@ from django.conf import settings
 from rest_framework.throttling import AnonRateThrottle
 from django.utils.html import strip_tags
 from django.views.decorators.csrf import ensure_csrf_cookie
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import BodyStyle, CompanySettings, FuelType, Status, TractionType, TransmissionType, Vehicle, Messages, VehicleImage
 from .serializers import (
+    AdminTokenObtainPairSerializer,
     BodyStyleSerializer,
     CompanySettingsSerializer,
     FuelTypeSerializer,
@@ -37,32 +37,8 @@ from .serializers import (
 def csrf(request):
     return JsonResponse({"detail": "CSRF cookie set"})
 
-class LoginView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        username = request.data.get("username")
-        password = request.data.get("password")
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            if user.is_staff:
-                login(request, user)
-                return Response({
-                    "detail": "Autenticação bem-sucedida.",
-                    "user_id": user.pk,
-                    "username": user.username,
-                    "is_admin": user.is_staff
-                })
-            else:
-                return Response(
-                    {"detail": "Acesso negado. Requer privilégios administrativos."}, 
-                    status=status.HTTP_403_FORBIDDEN
-                )
-        return Response(
-            {"detail": "Credenciais inválidas."}, 
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+class AdminLoginView(TokenObtainPairView):
+    serializer_class = AdminTokenObtainPairSerializer
 
 class VehicleAttributesView(APIView):
     permission_classes = [AllowAny]  
@@ -88,19 +64,6 @@ class VehicleFilter(django_filters.FilterSet):
     class Meta:
         model = Vehicle
         fields = ['status']
-
-class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        logout(request)
-        
-        response = Response(
-            {"detail": "Sessão terminada com sucesso."},
-            status=status.HTTP_200_OK
-        )
-        
-        return response    
 
 class PublicVehicleViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]

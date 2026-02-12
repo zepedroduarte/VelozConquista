@@ -16,6 +16,7 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 from corsheaders.defaults import default_headers
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -79,21 +80,11 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     "X-CSRFToken",
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://veloz-conquista.vercel.app',
-]
-
 # --- Cookies ---
 
 SESSION_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-
 SESSION_COOKIE_HTTPONLY = True 
-CSRF_COOKIE_HTTPONLY = False
-
-CSRF_COOKIE_DOMAIN = None
 SESSION_COOKIE_DOMAIN = None
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -125,6 +116,12 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '5/day', 
     }
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 WSGI_APPLICATION = 'be.wsgi.application'

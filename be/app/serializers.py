@@ -5,6 +5,26 @@ from .models import (
     TransmissionType, TractionType, Messages, VehicleImage
 )
 
+class AdminTokenObtainPairSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+    def validate(self, data):
+        from django.contrib.auth import authenticate
+
+        user = authenticate(username=data["username"], password=data["password"])
+
+        if not user or not user.is_staff:
+            raise serializers.ValidationError("Sem permissão.")
+
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(user)
+
+        return {
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+        }
+
 class CompanySettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanySettings
