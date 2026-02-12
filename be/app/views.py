@@ -14,7 +14,6 @@ from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.throttling import AnonRateThrottle
 from django.utils.html import strip_tags
-from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import BodyStyle, CompanySettings, FuelType, Status, TractionType, TransmissionType, Vehicle, Messages, VehicleImage
@@ -32,10 +31,6 @@ from .serializers import (
     AdminVehicleReadSerializer, 
     MessageSerializer
 )
-
-@ensure_csrf_cookie
-def csrf(request):
-    return JsonResponse({"detail": "CSRF cookie set"})
 
 class AdminLoginView(TokenObtainPairView):
     serializer_class = AdminTokenObtainPairSerializer
