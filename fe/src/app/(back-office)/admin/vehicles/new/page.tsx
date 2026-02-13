@@ -118,7 +118,11 @@ export default function NewVehiclePage() {
                 });
             }
 
-            await api.post('/admin/vehicles/', formData);
+            await api.post('/admin/vehicles/', formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
 
             router.push('/admin/vehicles');
             router.refresh();
