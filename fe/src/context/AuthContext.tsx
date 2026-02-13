@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useState, useContext, ReactNode } from 'react';
+import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import api from '@/lib/axios';
 import Cookies from 'js-cookie';
 
@@ -15,7 +15,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("access"));
+const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access");
+    setIsAuthenticated(!!token);
+  }, []);
 
   const login = async (values: LoginValues) => {
     try {
