@@ -1,139 +1,153 @@
 'use client';
 
 import Link from "next/link";
-import { Facebook, Instagram, MapPin, Phone, Mail, Clock } from "lucide-react";
+import { Facebook, Instagram } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import { useCompany } from "@/context/CompanyContext";
 
 export function Footer() {
-    const { isAuthenticated } = useAuth();
-    const { company } = useCompany();
-    const [mounted, setMounted] = useState(false);
+  const { isAuthenticated } = useAuth(); 
+  const { company } = useCompany();
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+  const [mounted, setMounted] = useState(false);
 
-    if (!mounted) {
-        return <footer className="border-t bg-neutral-950 min-h-[200px]" />;
-    }
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-    return (
-        <footer className="bg-neutral-950 text-white/70">
-            <div className="mx-auto w-[min(70vw,1200px)] pt-12 pb-6 px-4">
-                <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4 pb-10 border-b border-white/10">
-                    {/* Brand */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                            <span className="text-red-500 font-black text-xl leading-none">▲</span>
-                            <h3 className="text-white font-bold text-lg">{company?.name ?? "Veloz Conquista"}</h3>
-                        </div>
-                        <p className="text-sm leading-relaxed">
-                            Comércio de automóveis usados e semi‑novos. A sua confiança é a nossa prioridade.
-                        </p>
-                        <div className="flex items-center gap-3 pt-1">
-                            {company?.facebook_url ? (
-                                <Link href={company.facebook_url} target="_blank" rel="noopener noreferrer"
-                                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 hover:bg-red-600 hover:text-white transition-all">
-                                    <Facebook className="h-4 w-4" />
-                                    <span className="sr-only">Facebook</span>
-                                </Link>
-                            ) : null}
-                            {company?.instagram_url ? (
-                                <Link href={company.instagram_url} target="_blank" rel="noopener noreferrer"
-                                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 hover:bg-red-600 hover:text-white transition-all">
-                                    <Instagram className="h-4 w-4" />
-                                    <span className="sr-only">Instagram</span>
-                                </Link>
-                            ) : null}
-                        </div>
-                    </div>
+  if (!mounted) {
+    return <footer className="border-t bg-background min-h-[200px]" />;
+  }
 
-                    {/* Quick Links */}
-                    <div className="space-y-4">
-                        <h3 className="text-white text-sm font-semibold uppercase tracking-wider">Links Rápidos</h3>
-                        <ul className="space-y-2 text-sm">
-                            {[
-                                { href: "/veiculos", label: "Veículos" },
-                                { href: "/sobre", label: "Sobre Nós" },
-                                { href: "/contacto", label: "Contacto" },
-                            ].map(({ href, label }) => (
-                                <li key={href}>
-                                    <Link href={href} className="hover:text-white hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
-                                        <span className="text-red-500">›</span> {label}
-                                    </Link>
-                                </li>
-                            ))}
-                            <li>
-                                {isAuthenticated ? (
-                                    <Link href="/admin/dashboard" className="font-semibold text-red-500 hover:text-red-400 inline-flex items-center gap-1.5 transition-colors">
-                                        <span>›</span> Área Reservada
-                                    </Link>
-                                ) : (
-                                    <Link href="/login" className="hover:text-white inline-flex items-center gap-1.5 transition-colors">
-                                        <span className="text-red-500">›</span> Área Reservada
-                                    </Link>
-                                )}
-                            </li>
-                        </ul>
-                    </div>
-
-                    {/* Contact */}
-                    <div className="space-y-4">
-                        <h3 className="text-white text-sm font-semibold uppercase tracking-wider">Contacto</h3>
-                        <ul className="space-y-3 text-sm">
-                            {company?.address && (
-                                <li className="flex items-start gap-2">
-                                    <MapPin className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
-                                    <span>{company.address}</span>
-                                </li>
-                            )}
-                            {company?.phone && (
-                                <li>
-                                    <a href={`tel:${company.phone}`} className="flex items-center gap-2 hover:text-white transition-colors">
-                                        <Phone className="h-4 w-4 text-red-500 shrink-0" />
-                                        <span>{company.phone}</span>
-                                    </a>
-                                </li>
-                            )}
-                            {company?.email && (
-                                <li>
-                                    <a href={`mailto:${company.email}`} className="flex items-center gap-2 hover:text-white transition-colors">
-                                        <Mail className="h-4 w-4 text-red-500 shrink-0" />
-                                        <span>{company.email}</span>
-                                    </a>
-                                </li>
-                            )}
-                        </ul>
-                    </div>
-
-                    {/* Hours */}
-                    <div className="space-y-4">
-                        <h3 className="text-white text-sm font-semibold uppercase tracking-wider">Horário</h3>
-                        <ul className="space-y-2 text-sm">
-                            {[
-                                { day: "Segunda – Sexta", hours: "9h – 19h" },
-                                { day: "Sábado", hours: "10h – 16h" },
-                                { day: "Domingo", hours: "Fechado" },
-                            ].map(({ day, hours }) => (
-                                <li key={day} className="flex items-center gap-2">
-                                    <Clock className="h-3.5 w-3.5 text-red-500 shrink-0" />
-                                    <span>
-                                        <span className="text-white/50">{day}:</span>{" "}
-                                        <span className={hours === "Fechado" ? "text-red-400" : "text-white/80"}>{hours}</span>
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
-
-                <div className="pt-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white/40">
-                    <p>&copy; {new Date().getFullYear()} {company?.name ?? "Veloz Conquista"}. Todos os direitos reservados.</p>
-                    <p>Desenvolvido com dedicação</p>
-                </div>
+  return (
+    <footer className="border-t bg-background">
+      <div className="w-[70vw] mx-auto py-3 md:py-3 px-4">
+        <div className="hidden md:grid grid-cols-1 gap-10 md:grid-cols-4">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">{company?.name}</h3>
+            <p className="text-sm text-muted-foreground">
+              Comércio de automóveis usados e semi-novos.
+            </p>
+            <div className="flex items-center space-x-4">
+              {company?.facebook_url && (
+                <Link href={company.facebook_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                  <Facebook className="h-5 w-5" />
+                  <span className="sr-only">Facebook</span>
+                </Link>
+              )}
+              {company?.instagram_url && (
+                <Link href={company.instagram_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                  <Instagram className="h-5 w-5" />
+                  <span className="sr-only">Instagram</span>
+                </Link>
+              )}
             </div>
-        </footer>
-    );
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Links Rápidos</h3>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/veiculos" className="text-muted-foreground hover:text-foreground">Veículos</Link></li>
+              <li><Link href="/sobre" className="text-muted-foreground hover:text-foreground">Sobre Nós</Link></li>
+              <li><Link href="/contacto" className="text-muted-foreground hover:text-foreground">Contato</Link></li>
+              {isAuthenticated ? (
+                  <li><Link href="/admin/dashboard" className="font-semibold text-red-600 hover:text-foreground">Área Reservada</Link></li>
+              ) : (
+                  <li><Link href="/login" className="text-muted-foreground hover:text-foreground">Área Reservada</Link></li>
+              )}
+            </ul>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Contacto</h3>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>{company?.address}</li>
+                <li>{company?.phone}</li>
+                <li>{company?.email}</li>
+            </ul>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Horário</h3>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>Segunda - Sexta: 9h - 19h</li>
+                <li>Sábado: 10h - 16h</li>
+                <li>Domingo: Fechado</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="md:hidden space-y-4">
+          <Accordion type="multiple">
+            <AccordionItem value="empresa">
+              <AccordionTrigger>Veloz Conquista</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Comércio de automóveis usados e semi-novos.
+                </p>
+                <div className="flex items-center space-x-4">
+                  <Link href="#" className="text-muted-foreground hover:text-foreground">
+                    <Facebook className="h-5 w-5" />
+                  </Link>
+                  <Link href="#" className="text-muted-foreground hover:text-foreground">
+                    <Instagram className="h-5 w-5" />
+                  </Link>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="links">
+              <AccordionTrigger>Links Rápidos</AccordionTrigger>
+              <AccordionContent>
+                <ul className="space-y-2 text-sm">
+                  <li><Link href="/veiculos" className="text-muted-foreground hover:text-foreground">Veículos</Link></li>
+                  <li><Link href="/sobre" className="text-muted-foreground hover:text-foreground">Sobre Nós</Link></li>
+                  <li><Link href="/contacto" className="text-muted-foreground hover:text-foreground">Contato</Link></li>
+                  {isAuthenticated ? (
+                      <li><Link href="/admin/dashboard" className="font-semibold text-red-600 hover:text-foreground">Área Reservada</Link></li>
+                  ) : (
+                      <li><Link href="/login" className="text-muted-foreground hover:text-foreground">Área Reservada</Link></li>
+                  )}                
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="contato">
+              <AccordionTrigger>Contacto</AccordionTrigger>
+              <AccordionContent>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>Estrada De Sta Eulalia 1</li>
+                  <li>Ponte Lousa</li>
+                  <li>Telefone: 918630374</li>
+                  <li>Email: velozconquista@gmail.com</li>
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="horario">
+              <AccordionTrigger>Horário</AccordionTrigger>
+              <AccordionContent>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>Segunda - Sexta: 9h - 19h</li>
+                  <li>Sábado: 10h - 16h</li>
+                  <li>Domingo: Fechado</li>
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+
+        <div className="mt-7 pt-3 text-center text-sm text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} Veloz Conquista. Todos os direitos reservados.</p>
+        </div>
+      </div>
+    </footer>
+  );
 }
