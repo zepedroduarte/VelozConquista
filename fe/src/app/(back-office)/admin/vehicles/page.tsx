@@ -61,11 +61,11 @@ export default function AdminVehiclesPage() {
     useEffect(() => {
         currentPageRef.current = currentPage;
     }, [currentPage]);
-    
+
     useEffect(() => {
         const timer = setTimeout(() => {
             if (currentPageRef.current !== 1) {
-                setCurrentPage(1); 
+                setCurrentPage(1);
             } else {
                 fetchData(1, searchTerm);
             }
@@ -76,7 +76,8 @@ export default function AdminVehiclesPage() {
 
     useEffect(() => {
         fetchData(currentPage, searchTerm);
-    }, [currentPage, fetchData, searchTerm]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage, fetchData]);
 
     const handleDelete = async (id: number) => {
         try {
@@ -168,7 +169,7 @@ export default function AdminVehiclesPage() {
                             <tbody className="divide-y divide-border bg-white">
                                 {isLoading ? (
                                     <tr>
-                                        <td colSpan={7} className="h-24 text-center">
+                                        <td colSpan={8} className="h-24 text-center">
                                             <div className="flex justify-center items-center gap-2 text-muted-foreground">
                                                 <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
                                             </div>
@@ -176,7 +177,7 @@ export default function AdminVehiclesPage() {
                                     </tr>
                                 ) : vehicles.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="h-24 text-center text-muted-foreground">
+                                        <td colSpan={8} className="h-24 text-center text-muted-foreground">
                                             Nenhum veículo encontrado.
                                         </td>
                                     </tr>

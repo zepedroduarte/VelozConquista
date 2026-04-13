@@ -2,7 +2,6 @@
 
 import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import api from '@/lib/axios';
-import Cookies from 'js-cookie';
 
 type LoginValues = Record<'username' | 'password', string>;
 
@@ -41,15 +40,11 @@ const [isAuthenticated, setIsAuthenticated] = useState(false);
     }
   };
 
-  const logout = async () => {
-    try { 
-      localStorage.removeItem("access");
-      localStorage.removeItem("refresh");
-    } finally { 
-      Cookies.remove('is_logged_in');
-      setIsAuthenticated(false); 
-      window.location.href = '/'; 
-    }
+  const logout = () => {
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+    setIsAuthenticated(false);
+    window.location.href = '/';
   };
 
   return (

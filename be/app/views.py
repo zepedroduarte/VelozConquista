@@ -1,6 +1,4 @@
-from django.http import JsonResponse
 from django.utils import timezone
-import django_filters
 from rest_framework import viewsets, mixins, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -8,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.viewsets import GenericViewSet
-from django_filters.rest_framework import DjangoFilterBackend 
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from django.core.mail import send_mail
 from django.conf import settings
@@ -17,6 +15,7 @@ from django.utils.html import strip_tags
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import BodyStyle, CompanySettings, FuelType, Status, TractionType, TransmissionType, Vehicle, Messages, VehicleImage
+from .filters import VehicleFilter
 from .serializers import (
     AdminTokenObtainPairSerializer,
     BodyStyleSerializer,
@@ -26,14 +25,15 @@ from .serializers import (
     TractionTypeSerializer,
     TransmissionTypeSerializer,
     VehicleImageSerializer,
-    VehicleSerializer, 
-    AdminVehicleCreateSerializer, 
-    AdminVehicleReadSerializer, 
+    VehicleSerializer,
+    AdminVehicleCreateSerializer,
+    AdminVehicleReadSerializer,
     MessageSerializer
 )
 
 class AdminLoginView(TokenObtainPairView):
     serializer_class = AdminTokenObtainPairSerializer
+    throttle_classes = [AnonRateThrottle]
 
 class VehicleAttributesView(APIView):
     permission_classes = [AllowAny]  
@@ -48,18 +48,6 @@ class VehicleAttributesView(APIView):
         }
         return Response(data)
     
-class VehicleFilter(django_filters.FilterSet):
-    min_price = django_filters.NumberFilter(field_name="retail_price", lookup_expr='gte')
-    max_price = django_filters.NumberFilter(field_name="retail_price", lookup_expr='lte')
-    fuel_type = django_filters.BaseInFilter(field_name="vehicle_data__fuel_type__id")
-    transmission = django_filters.BaseInFilter(field_name="vehicle_data__transmission_type__id")
-    body_style = django_filters.BaseInFilter(field_name="vehicle_data__body_style__id")
-    traction = django_filters.BaseInFilter(field_name="vehicle_data__traction_type__id")
-
-    class Meta:
-        model = Vehicle
-        fields = ['status']
-
 class PublicVehicleViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     queryset = Vehicle.objects.filter(status__name="Disponível").order_by('-created_at')
@@ -133,6 +121,7 @@ class MessageCreateViewSet(generics.CreateAPIView):
         instance = serializer.save(message_date=timezone.now())
 
         clean_name = strip_tags(instance.sender_name)
+        clean_email = strip_tags(instance.sender_email)
         clean_subject = strip_tags(instance.subject)
         clean_body = strip_tags(instance.body)
 
@@ -145,7 +134,7 @@ class MessageCreateViewSet(generics.CreateAPIView):
         Recebeste uma nova mensagem através do site Veloz Conquista.
 
         Nome: {clean_name}
-        Email: {instance.sender_email}
+        Email: {clean_email}
         
         Assunto: {clean_subject}
         ----------------------------------------------------
