@@ -7,12 +7,10 @@ export default function FrontOfficeLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <Header />
-        <main className="flex-1">
-          {children}
-        </main>
+      {children}
       <Footer />
-    </>
+    </div>
   );
 }
