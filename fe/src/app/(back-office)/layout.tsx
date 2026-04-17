@@ -7,11 +7,12 @@ import api from '@/lib/axios';
 import { AdminSidebar } from "@/components/app/adminSidebar";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-    const { isAuthenticated, logout } = useAuth();
+    const { isAuthenticated, logout, isLoading } = useAuth();
     const router = useRouter();
 
 
     useEffect(() => {
+        if (isLoading) return;
         const checkSecurity = async () => {
             if (!isAuthenticated) {
                 router.push('/login');
@@ -26,8 +27,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         };
 
         checkSecurity();
-    }, [isAuthenticated, logout, router]);
+    }, [isAuthenticated, isLoading, logout, router]);
 
+    if (isLoading) {
+        return (
+            <div className="h-screen w-full flex items-center justify-center bg-muted">
+                <p>A validar sessão...</p>
+            </div>
+        );
+    }
 
     return (
         <>

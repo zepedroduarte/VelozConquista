@@ -7,6 +7,7 @@ type LoginValues = Record<'username' | 'password', string>;
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (values: LoginValues) => Promise<boolean>;
   logout: () => void;
 }
@@ -14,11 +15,13 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("access");
     setIsAuthenticated(!!token);
+    setIsLoading(false);
   }, []);
 
   const login = async (values: LoginValues) => {
@@ -48,7 +51,7 @@ const [isAuthenticated, setIsAuthenticated] = useState(false);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
