@@ -2,11 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    //dangerouslyAllowLocalIP: true,
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'res.cloudinary.com', 
+        hostname: '*.blob.core.windows.net',
         port: '',
         pathname: '/**',
       },
@@ -15,4 +14,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-

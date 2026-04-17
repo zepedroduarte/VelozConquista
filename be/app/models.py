@@ -1,5 +1,4 @@
 import os
-import cloudinary.api
 from django.db import models
 from django.dispatch import receiver
 from django.db.models.signals import post_delete
@@ -142,21 +141,28 @@ class Messages(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
             
 @receiver(post_delete, sender=VehicleData)
-def delete_cloudinary_folder(sender, instance, **kwargs):
+def delete_storage_folder(sender, instance, **kwargs):
+    """Delete all blobs under the vehicle's folder when VehicleData is deleted."""
     safe_make = slugify(instance.make)
     safe_model = slugify(instance.model)
     safe_plate = slugify(instance.license_plate)
-    folder_path = f"media/vehicles/{safe_make}-{safe_model}-{safe_plate}"
+    folder_prefix = f"vehicles/{safe_make}-{safe_model}-{safe_plate}"
 
-    print(f"🗑️ A tentar apagar pasta no Cloudinary: {folder_path}")
+    print(f"🗑️ A tentar apagar pasta no storage: {folder_prefix}")
 
     try:
-        cloudinary.api.delete_resources_by_prefix(folder_path)
-        cloudinary.api.delete_folder(folder_path)
-        print(f"✅ Pasta {folder_path} apagada com sucesso!")
-        
+        from django.core.files.storage import default_storage
+
+        # List and delete all blobs with the given prefix
+        dirs, files = default_storage.listdir(folder_prefix)
+        for filename in files:
+            file_path = f"{folder_prefix}/{filename}"
+            default_storage.delete(file_path)
+            print(f"  🗑️ Apagado: {file_path}")
+
+        print(f"✅ Pasta {folder_prefix} apagada com sucesso!")
+
     except Exception as e:
-        print(f"⚠️ Aviso: Não foi possível apagar a pasta {folder_path}. Erro: {e}")           
-            
-            
+        print(f"⚠️ Aviso: Não foi possível apagar a pasta {folder_prefix}. Erro: {e}")
+
             
