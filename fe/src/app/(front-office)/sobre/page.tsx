@@ -98,7 +98,7 @@ export default function About() {
                         CONTRATO DE SEGURO DE RESPONSABILIDADE CIVIL PROFISSIONAL CELEBRADO COM COMPANHIA SEGUROS AGEAS
                     </p>
                     <p className="font-semibold text-red-600">
-                        APÓLICE Nº 00841023353700000 — VÁLIDO DE 21-12-2025 A 21-03-2026
+                        APÓLICE Nº 00841023353700000 — VÁLIDO DE 22-03-2026 A 21-06-2026
                     </p>
                 </div>
 
