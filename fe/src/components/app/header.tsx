@@ -28,7 +28,7 @@ export function Header() {
         
         <div className="flex items-center space-x-6">
              <Link href="/" className="flex items-center space-x-2">
-                <span className="font-bold text-xl">{company?.name}</span>
+                <span className="font-bold text-xl">{company?.name || "Veloz Conquista"}</span>
              </Link>
              <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
                 <Link href="/veiculos" className="transition-colors hover:text-foreground/80">

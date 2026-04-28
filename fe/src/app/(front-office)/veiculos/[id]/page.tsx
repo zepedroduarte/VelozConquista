@@ -64,7 +64,8 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
                 
                 const images = response.data.vehicle_data.images;
                 if (images && images.length > 0) {
-                    setSelectedImage(getImageUrl(images[0].image));
+                    const primaryImg = images.find((img: { is_primary: boolean }) => img.is_primary) || images[0];
+                    setSelectedImage(getImageUrl(primaryImg.image));
                 } else {
                     setSelectedImage("/teste.png"); 
                 }
@@ -222,6 +223,7 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
                                 src={selectedImage} 
                                 alt={`${details.make} principal`} 
                                 fill 
+                                sizes="(max-width: 1024px) 100vw, 66vw"
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                                 priority
                                 unoptimized={selectedImage.includes("127.0.0.1")}
@@ -265,6 +267,7 @@ export default function VehicleDetailsPage({ params }: VehicleDetailsProps) {
                                                 src={src} 
                                                 alt={`Galeria`} 
                                                 fill 
+                                                sizes="(max-width: 640px) 25vw, 15vw"
                                                 className="object-cover"
                                                 unoptimized={src.includes("127.0.0.1")}
                                             />

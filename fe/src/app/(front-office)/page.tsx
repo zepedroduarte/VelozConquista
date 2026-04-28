@@ -56,7 +56,7 @@ export default function Home() {
             <section className="relative bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-800 text-white py-32">
                 <div className="w-[70vw] mx-auto flex flex-col items-start justify-center">
                     <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
-                        {company?.name}
+                        {company?.name || "Veloz Conquista"}
                     </h1>
                     <p className="mt-4 max-w-lg text-xl text-white/80">
                         Comércio de automóveis usados e semi-novos de confiança.
@@ -100,10 +100,11 @@ export default function Home() {
                         </div>
                     ) : featuredVehicles.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {featuredVehicles.map((vehicle) => (
+                            {featuredVehicles.map((vehicle, index) => (
                                 <VehicleCard 
                                     key={vehicle.id} 
-                                    vehicle={vehicle} 
+                                    vehicle={vehicle}
+                                    priority={index < 3}
                                 />
                             ))}
                         </div>

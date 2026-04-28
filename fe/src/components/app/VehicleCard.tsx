@@ -17,6 +17,7 @@ interface Vehicle {
 
 interface VehicleCardProps {
     vehicle: Vehicle; 
+    priority?: boolean;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -26,7 +27,7 @@ function formatPrice(price: string | number): string {
     return numericPrice?.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 });
 }
 
-export function VehicleCard({ vehicle }: VehicleCardProps) {
+export function VehicleCard({ vehicle, priority = false }: VehicleCardProps) {
     
     const details = vehicle.vehicle_data;
 
@@ -51,7 +52,9 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
                     src={imageUrl}
                     alt={`${details.make} ${details.model}`}
                     fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    priority={priority}
                     unoptimized={imageUrl.includes("127.0.0.1")} 
                 />
             </div>
