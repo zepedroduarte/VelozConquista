@@ -60,6 +60,16 @@ export default function About() {
                                 https://www.bportugal.pt/intermediariocreditovalidar-registo
                             </Link>
                         </li>
+                        <li>
+                            <Link 
+                                href="https://clientebancario.bportugal.pt/" 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="hover:underline text-primary"
+                            >
+                                https://clientebancario.bportugal.pt/
+                            </Link>
+                        </li>
                     </ul>
                 </div>
                 
@@ -102,9 +112,14 @@ export default function About() {
                     </p>
                 </div>
 
-                <p className="pt-4 text-sm text-justify">
-                    O INTERMEDIÁRIO DE CRÉDITO VELOZCONQUISTA UNIPESSOAL LDA NÃO PODE RECEBER OU ENTREGAR QUAISQUER VALORES RELACIONADOS COM A FORMAÇÃO, A EXECUÇÃO E O CUMPRIMENTO ANTECIPADO DOS CONTRATOS DE CRÉDITO, NOS TERMOS DO ARTIGO 46º DO DECRETO-LEI 81-C/2017, DE 07/07.
-                </p>
+                <div className="pt-4 text-left space-y-3 text-sm text-justify">
+                    <p>
+                        <span className="font-semibold">É proibido</span> ao intermediário de crédito receber ou entregar quaisquer valores relacionados com a formação, a execução e o cumprimento antecipado dos contratos de crédito, nos termos do artigo 46.º do regime jurídico dos intermediários de crédito, aprovado pelo Decreto-Lei n.º 81-C/2017, de 7 de julho.
+                    </p>
+                    <p>
+                        O intermediário de crédito atua sob nome e responsabilidade dos mutuantes com quem mantém vínculo.
+                    </p>
+                </div>
 
                 <p className="pt-2 text-sm font-semibold text-red-600">
                     A ATIVIDADE DE INTERMEDIÁRIO DE CRÉDITO DA VELOZCONQUISTA UNIPESSOAL LDA ESTÁ SUJEITA À SUPERVISÃO DO BANCO DE PORTUGAL
