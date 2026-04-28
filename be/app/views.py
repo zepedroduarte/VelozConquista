@@ -99,10 +99,19 @@ class AdminVehicleViewSet(viewsets.ModelViewSet):
         except Status.DoesNotExist:
             return Response({'error': 'Status Vendido não encontrado'}, status=400)       
     
-class AdminVehicleImageViewSet(mixins.DestroyModelMixin, GenericViewSet):
+class AdminVehicleImageViewSet(mixins.DestroyModelMixin, mixins.UpdateModelMixin, GenericViewSet):
     permission_classes = [IsAdminUser]
     queryset = VehicleImage.objects.all()
     serializer_class = VehicleImageSerializer    
+
+    @action(detail=True, methods=['post'])
+    def set_primary(self, request, pk=None):
+        image = self.get_object()
+        # Unset all other images for this vehicle_data
+        VehicleImage.objects.filter(vehicle_data=image.vehicle_data).update(is_primary=False)
+        image.is_primary = True
+        image.save()
+        return Response({'status': 'ok'})
 
 class CompanySettingsView(APIView):
     permission_classes = [AllowAny] 

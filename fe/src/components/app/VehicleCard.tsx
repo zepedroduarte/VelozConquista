@@ -32,10 +32,11 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
 
     let imageUrl = "/teste.png"; 
     if (details.images && details.images.length > 0) {
-        if (details.images[0].image.startsWith('http')) {
-             imageUrl = details.images[0].image;
+        const primaryImg = details.images.find(img => img.is_primary) || details.images[0];
+        if (primaryImg.image.startsWith('http')) {
+             imageUrl = primaryImg.image;
         } else {
-             imageUrl = `${API_URL}${details.images[0].image}`;
+             imageUrl = `${API_URL}${primaryImg.image}`;
         }
     }
 
@@ -84,14 +85,10 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
                     </div>
                 </CardContent>
 
-                <div className="flex justify-between items-center pt-3 border-t border-border/50 mt-auto">
+                <div className="pt-3 border-t border-border/50 mt-auto">
                     <div className="text-xl font-bold text-gray-900">
                         {formatPrice(vehicle.retail_price)}
                     </div>
-                    <span className="text-sm font-medium text-red-600 group-hover:text-red-700 flex items-center gap-1 transition-colors">
-                        Ver mais
-                        <span className="transition-transform group-hover:translate-x-0.5">→</span>
-                    </span>
                 </div>
             </div>
         </Card>

@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, Loader2, Upload, Euro, CarFront, Gauge, Zap, DoorOpen, Armchair, X, Calendar, Info, Settings, Banknote, ImageIcon, Trash2 } from "lucide-react";
+import { ChevronLeft, Loader2, Upload, Euro, CarFront, Gauge, Zap, DoorOpen, Armchair, X, Calendar, Info, Settings, Banknote, ImageIcon, Trash2, Star } from "lucide-react";
 import { useVehicleOptions } from "@/context/VehicleOptionsContext";
 import Image from 'next/image';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -60,6 +60,8 @@ export default function EditVehiclePage({ params }: { params: Promise<{ id: stri
     const [existingImages, setExistingImages] = useState<ExistingImage[]>([]);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
+    const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+    const [newPrimaryIndex, setNewPrimaryIndex] = useState<number | null>(null);
 
     const form = useForm<VehicleValues>({
         resolver: zodResolver(VehicleSchema),
@@ -138,6 +140,16 @@ export default function EditVehiclePage({ params }: { params: Promise<{ id: stri
         } catch (error) {
             console.error("Erro ao apagar imagem:", error);
             alert("Erro ao apagar imagem. Tente novamente.");
+        }
+    };
+
+    const setExistingPrimary = async (imageId: number) => {
+        try {
+            await api.post(`/admin/vehicle-images/${imageId}/set_primary/`);
+            setExistingImages(prev => prev.map(img => ({ ...img, is_primary: img.id === imageId })));
+            setNewPrimaryIndex(null);
+        } catch (error) {
+            console.error("Erro ao definir imagem principal:", error);
         }
     };
 
@@ -273,10 +285,11 @@ export default function EditVehiclePage({ params }: { params: Promise<{ id: stri
                             <CardContent className="pt-6 space-y-6">
                                 {existingImages.length > 0 && (
                                     <div>
-                                        <h4 className="text-sm font-medium mb-3">Imagens Atuais</h4>
+                                        <h4 className="text-sm font-medium mb-1">Imagens Atuais</h4>
+                                        <p className="text-xs text-muted-foreground mb-3">Clique na estrela para definir a imagem principal. Clique na imagem para ampliar.</p>
                                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                                             {existingImages.map((img) => (
-                                                <div key={img.id} className="relative aspect-[4/3] rounded-md overflow-hidden border bg-background shadow-sm group">
+                                                <div key={img.id} className={`relative aspect-[4/3] rounded-md overflow-hidden border-2 bg-background shadow-sm group transition-all ${img.is_primary ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-border'}`}>
                                                     <AlertDialog>
                                                         <AlertDialogTrigger asChild>
                                                             <button type="button" className="absolute top-1 right-1 z-10 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-3 h-3" /></button>
@@ -286,8 +299,13 @@ export default function EditVehiclePage({ params }: { params: Promise<{ id: stri
                                                             <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteExistingImage(img.id)} className="bg-red-600 text-white">Apagar</AlertDialogAction></AlertDialogFooter>
                                                         </AlertDialogContent>
                                                     </AlertDialog>
-                                                    <Image fill src={img?.image} alt="Veículo" className="object-cover" />
-                                                    {img.is_primary && <div className="absolute inset-x-0 bottom-0 bg-blue-600/80 text-white text-[10px] py-1 text-center font-bold uppercase">Principal</div>}
+                                                    <button type="button" onClick={() => setExistingPrimary(img.id)} className={`absolute top-1 left-1 z-10 p-1 rounded-full transition-all ${img.is_primary ? 'bg-amber-400 text-white' : 'bg-black/50 text-white opacity-0 group-hover:opacity-100'}`}>
+                                                        <Star className={`w-3 h-3 ${img.is_primary ? 'fill-white' : ''}`} />
+                                                    </button>
+                                                    <div className="cursor-pointer w-full h-full" onClick={() => setLightboxSrc(img?.image)}>
+                                                        <Image fill src={img?.image} alt="Veículo" className="object-cover" />
+                                                    </div>
+                                                    {img.is_primary && <div className="absolute inset-x-0 bottom-0 bg-amber-500/90 text-white text-[10px] py-1 text-center font-bold uppercase">Principal</div>}
                                                 </div>
                                             ))}
                                         </div>
@@ -306,9 +324,11 @@ export default function EditVehiclePage({ params }: { params: Promise<{ id: stri
                                         {previews.length > 0 && (
                                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                                                 {previews.map((src, index) => (
-                                                    <div key={index} className="relative aspect-[4/3] rounded-md overflow-hidden border bg-background shadow-sm group">
+                                                    <div key={index} className={`relative aspect-[4/3] rounded-md overflow-hidden border-2 bg-background shadow-sm group transition-all ${newPrimaryIndex === index ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-border'}`}>
                                                         <button type="button" onClick={() => removeNewImage(index)} className="absolute top-1 right-1 z-10 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></button>
-                                                        <Image fill src={src} alt={`New Preview ${index}`} className="object-cover" />
+                                                        <div className="cursor-pointer w-full h-full" onClick={() => setLightboxSrc(src)}>
+                                                            <Image fill src={src} alt={`New Preview ${index}`} className="object-cover" />
+                                                        </div>
                                                         <div className="absolute inset-x-0 bottom-0 bg-green-600/80 text-white text-[10px] py-1 text-center font-bold uppercase">Nova</div>
                                                     </div>
                                                 ))}
@@ -318,6 +338,15 @@ export default function EditVehiclePage({ params }: { params: Promise<{ id: stri
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {lightboxSrc && (
+                            <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxSrc(null)}>
+                                <button type="button" onClick={() => setLightboxSrc(null)} className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors">
+                                    <X className="w-6 h-6" />
+                                </button>
+                                <img src={lightboxSrc} alt="Preview" className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()} />
+                            </div>
+                        )}
 
                         <div className="flex justify-end pt-4 pb-10">
                             <Button type="submit" disabled={isSubmitting} size="lg" className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white min-w-[200px]">

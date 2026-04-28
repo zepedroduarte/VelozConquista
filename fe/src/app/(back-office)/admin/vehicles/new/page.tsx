@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, Loader2, Upload, Euro, CarFront, Gauge, Zap, DoorOpen, Armchair, X, Calendar, Info, Settings, Banknote, ImageIcon } from "lucide-react";
+import { ChevronLeft, Loader2, Upload, Euro, CarFront, Gauge, Zap, DoorOpen, Armchair, X, Calendar, Info, Settings, Banknote, ImageIcon, Star } from "lucide-react";
 import { useVehicleOptions } from "@/context/VehicleOptionsContext";
 import Image from 'next/image';
 
@@ -58,6 +58,8 @@ export default function NewVehiclePage() {
     
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
+    const [primaryIndex, setPrimaryIndex] = useState<number>(0);
+    const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
     
     const form = useForm<AddVehicleValues>({
         resolver: zodResolver(AddVehicleSchema),
@@ -85,6 +87,12 @@ export default function NewVehiclePage() {
         setPreviews((prev) => {
             URL.revokeObjectURL(prev[indexToRemove]);
             return prev.filter((_, index) => index !== indexToRemove);
+        });
+        // Adjust primaryIndex if needed
+        setPrimaryIndex((prev) => {
+            if (indexToRemove === prev) return 0;
+            if (indexToRemove < prev) return prev - 1;
+            return prev;
         });
     };
 
@@ -116,6 +124,7 @@ export default function NewVehiclePage() {
                 selectedFiles.forEach((file) => {
                     formData.append('images', file);
                 });
+                formData.append('primary_image_index', String(primaryIndex));
             }
 
             await api.post('/admin/vehicles/', formData, {
@@ -318,19 +327,38 @@ export default function NewVehiclePage() {
                                     </label>
 
                                     {previews.length > 0 && (
+                                        <>
+                                        <p className="text-xs text-muted-foreground">Clique na estrela para definir a imagem principal. Clique na imagem para ampliar.</p>
                                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                                             {previews.map((src, index) => (
-                                                <div key={index} className="relative aspect-[4/3] rounded-md overflow-hidden border bg-background shadow-sm group">
-                                                    <button type="button" onClick={() => removeImage(index)} className="absolute top-1 right-1 z-10 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></button>
-                                                    <Image fill src={src} alt={`Preview ${index}`} className="object-cover" />
-                                                    {index === 0 && <div className="absolute inset-x-0 bottom-0 bg-black/70 text-white text-[10px] py-1 text-center font-bold uppercase">Capa</div>}
+                                                <div key={index} className={`relative aspect-[4/3] rounded-md overflow-hidden border-2 bg-background shadow-sm group transition-all ${index === primaryIndex ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-border'}`}>
+                                                    <button type="button" onClick={() => removeImage(index)} className="absolute top-1 right-1 z-10 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                    <button type="button" onClick={() => setPrimaryIndex(index)} className={`absolute top-1 left-1 z-10 p-1 rounded-full transition-all ${index === primaryIndex ? 'bg-amber-400 text-white' : 'bg-black/50 text-white opacity-0 group-hover:opacity-100'}`}>
+                                                        <Star className={`w-3 h-3 ${index === primaryIndex ? 'fill-white' : ''}`} />
+                                                    </button>
+                                                    <div className="cursor-pointer w-full h-full" onClick={() => setLightboxSrc(src)}>
+                                                        <Image fill src={src} alt={`Preview ${index}`} className="object-cover" />
+                                                    </div>
+                                                    {index === primaryIndex && <div className="absolute inset-x-0 bottom-0 bg-amber-500/90 text-white text-[10px] py-1 text-center font-bold uppercase">Capa</div>}
                                                 </div>
                                             ))}
                                         </div>
+                                        </>
                                     )}
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {lightboxSrc && (
+                            <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxSrc(null)}>
+                                <button type="button" onClick={() => setLightboxSrc(null)} className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors">
+                                    <X className="w-6 h-6" />
+                                </button>
+                                <img src={lightboxSrc} alt="Preview" className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()} />
+                            </div>
+                        )}
 
                         <div className="flex justify-end pt-4 pb-10">
                             <Button type="submit" disabled={isSubmitting} size="lg" className="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white min-w-[200px]">

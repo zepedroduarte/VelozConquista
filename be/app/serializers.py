@@ -128,11 +128,13 @@ class AdminVehicleCreateSerializer(serializers.ModelSerializer):
         required=False
     )
 
+    primary_image_index = serializers.IntegerField(write_only=True, required=False, default=0)
+
     class Meta:
         model = Vehicle
         
         fields = [
-            'purchase_price', 'retail_price', 'status_id', 'images',
+            'purchase_price', 'retail_price', 'status_id', 'images', 'primary_image_index',
             'make', 'model', 'year', 'version', 'license_plate', 'mileage', 
             'color', 'seats', 'doors', 'power', 'engine_size',
             'transmission_type_id', 'fuel_type_id', 'body_style_id', 'traction_type_id'
@@ -140,6 +142,7 @@ class AdminVehicleCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         images_data = validated_data.pop('images', [])
+        primary_index = validated_data.pop('primary_image_index', 0)
         status_instance = validated_data.pop('status_id')
         purchase_price = validated_data.pop('purchase_price')
         retail_price = validated_data.pop('retail_price')
@@ -169,7 +172,7 @@ class AdminVehicleCreateSerializer(serializers.ModelSerializer):
                 VehicleImage.objects.create(
                     vehicle_data=vehicle_data_instance,
                     image=img,
-                    is_primary=(i == 0)
+                    is_primary=(i == primary_index)
                 )
                 
         return vehicle_instance
