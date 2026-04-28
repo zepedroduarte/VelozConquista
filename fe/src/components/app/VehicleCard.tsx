@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SlidersHorizontal, Fuel, Gauge, Car } from "lucide-react";
 import { APIVehicleData } from "@/lib/types";
@@ -43,14 +42,15 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
     const engineLiter = details.engine_size ? (parseFloat(details.engine_size) / 1000).toFixed(1) : "0.0";
 
     return (
-        <Card className="overflow-hidden shadow-md transition-shadow hover:shadow-lg flex flex-col h-full p-0 bg-white border-border/50">
+        <Link href={`/veiculos/${vehicle.id}`} className="block h-full">
+        <Card className="overflow-hidden shadow-md transition-all hover:shadow-xl cursor-pointer flex flex-col h-full p-0 bg-white border-border/50 group">
     
-            <div className={`relative w-full h-48 shrink-0 bg-gray-100`}>
+            <div className="relative w-full aspect-[4/3] shrink-0 bg-gray-100 overflow-hidden">
                 <Image
                     src={imageUrl}
                     alt={`${details.make} ${details.model}`}
                     fill
-                    className="object-cover"
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
                     unoptimized={imageUrl.includes("127.0.0.1")} 
                 />
             </div>
@@ -88,13 +88,13 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
                     <div className="text-xl font-bold text-gray-900">
                         {formatPrice(vehicle.retail_price)}
                     </div>
-                    <Link href={`/veiculos/${vehicle.id}`} passHref>
-                        <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white gap-1">
-                            Ver Detalhes
-                        </Button>
-                    </Link>
+                    <span className="text-sm font-medium text-red-600 group-hover:text-red-700 flex items-center gap-1 transition-colors">
+                        Ver mais
+                        <span className="transition-transform group-hover:translate-x-0.5">→</span>
+                    </span>
                 </div>
             </div>
         </Card>
+        </Link>
     );
 }
