@@ -22,25 +22,28 @@ const CompanyContext = createContext<CompanyContextType>({
     isLoading: true
 });
 
-export function CompanyProvider({ children }: { children: ReactNode }) {
-    const [company, setCompany] = useState<CompanySettings | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+// initialCompany vem do servidor (ISR). Só vamos buscar ao browser se o servidor não conseguiu.
+export function CompanyProvider({ children, initialCompany = null }: { children: ReactNode, initialCompany?: CompanySettings | null }) {
+    const [company, setCompany] = useState<CompanySettings | null>(initialCompany);
+    const [isLoading, setIsLoading] = useState(!initialCompany);
 
     useEffect(() => {
+        if (initialCompany) return;
+
         async function fetchSettings() {
             try {
                 const response = await api.get('/company-settings/');
                 setCompany(response.data);
             } catch (error) {
                 console.error("Erro ao carregar definições da empresa:", error);
-                setCompany(defaultSettings); 
+                setCompany(defaultSettings);
             } finally {
                 setIsLoading(false);
             }
         }
 
         fetchSettings();
-    }, []);
+    }, [initialCompany]);
 
     return (
         <CompanyContext.Provider value={{ company, isLoading }}>

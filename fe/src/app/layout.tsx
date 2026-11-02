@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { VehicleOptionsProvider } from "@/context/VehicleOptionsContext";
 import { CompanyProvider } from "@/context/CompanyContext";
+import { getCompany, getVehicleOptions } from "@/lib/api-server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,19 +23,21 @@ export const metadata: Metadata = {
   description: "Comércio de automóveis usados e semi-novos.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [company, vehicleOptions] = await Promise.all([getCompany(), getVehicleOptions()]);
+
   return (
     <html lang="pt">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground min-h-screen flex flex-col`}
       >
-        <CompanyProvider>
+        <CompanyProvider initialCompany={company}>
           <AuthProvider>
-            <VehicleOptionsProvider>
+            <VehicleOptionsProvider initialOptions={vehicleOptions}>
               {children}
             </VehicleOptionsProvider>
           </AuthProvider>

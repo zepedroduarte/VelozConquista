@@ -4,42 +4,19 @@ import Link from "next/link";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SlidersHorizontal, Fuel, Gauge, Car } from "lucide-react";
-import { APIVehicleData } from "@/lib/types";
-
-
-interface Vehicle {
-    id: number;
-    retail_price: string; 
-    status: { id: number, name: string };
-    vehicle_data: APIVehicleData; 
-    created_at?: string;
-}
+import { Vehicle } from "@/lib/types";
+import { formatPrice, getPrimaryImageUrl } from "@/lib/vehicle";
 
 interface VehicleCardProps {
     vehicle: Vehicle; 
     priority?: boolean;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
-function formatPrice(price: string | number): string {
-    const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
-    return numericPrice?.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 });
-}
-
 export function VehicleCard({ vehicle, priority = false }: VehicleCardProps) {
     
     const details = vehicle.vehicle_data;
 
-    let imageUrl = "/teste.png"; 
-    if (details.images && details.images.length > 0) {
-        const primaryImg = details.images.find(img => img.is_primary) || details.images[0];
-        if (primaryImg.image.startsWith('http')) {
-             imageUrl = primaryImg.image;
-        } else {
-             imageUrl = `${API_URL}${primaryImg.image}`;
-        }
-    }
+    const imageUrl = getPrimaryImageUrl(vehicle);
 
     const engineLiter = details.engine_size ? (parseFloat(details.engine_size) / 1000).toFixed(1) : "0.0";
 

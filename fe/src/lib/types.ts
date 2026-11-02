@@ -28,6 +28,22 @@ export interface APIVehicleData {
     images: APIVehicleImage[];
 }
 
+export interface Vehicle {
+    id: number;
+    retail_price: string;
+    status: APIVehicleOption;
+    vehicle_data: APIVehicleData;
+    created_at?: string;
+}
+
+export interface VehicleOptions {
+    bodyStyle: APIVehicleOption[];
+    fuelType: APIVehicleOption[];
+    transmissionType: APIVehicleOption[];
+    tractionType: APIVehicleOption[];
+    status: APIVehicleOption[];
+}
+
 export interface CompanySettings {
     name: string;
     description: string;

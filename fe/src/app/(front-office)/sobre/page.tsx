@@ -1,11 +1,15 @@
-'use client'
-
+import type { Metadata } from "next";
 import Link from "next/link";
-import { useCompany } from "@/context/CompanyContext";
+import { getCompany } from "@/lib/api-server";
 
-export default function About() {
+export const metadata: Metadata = {
+    title: "Sobre Nós | Veloz Conquista",
+    description: "Conheça a Veloz Conquista, comércio de automóveis usados e semi-novos e intermediário de crédito registado no Banco de Portugal.",
+};
 
-    const { company } = useCompany();
+export default async function About() {
+
+    const company = await getCompany();
 
     return (
         <main className="flex-1 py-16">

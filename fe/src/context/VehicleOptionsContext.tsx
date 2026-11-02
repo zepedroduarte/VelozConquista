@@ -1,34 +1,30 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import api from '@/lib/axios';
+import { VehicleOptions } from '@/lib/types';
 
 export type Option = { id: number; name: string };
-
-interface VehicleOptions {
-    bodyStyle: Option[];
-    fuelType: Option[];
-    transmissionType: Option[];
-    tractionType: Option[];
-    status: Option[];
-}
 
 interface VehicleOptionsContextType extends VehicleOptions {
     refreshOptions: () => Promise<void>;
 }
 
+const emptyOptions: VehicleOptions = {
+    bodyStyle: [],
+    fuelType: [],
+    transmissionType: [],
+    tractionType: [],
+    status: [],
+};
+
 const VehicleOptionsContext = createContext<VehicleOptionsContextType | undefined>(undefined);
 
-export function VehicleOptionsProvider({ children }: { children: ReactNode }) {
-    const [options, setOptions] = useState<VehicleOptions>({
-        bodyStyle: [],
-        fuelType: [],
-        transmissionType: [],
-        tractionType: [],
-        status: [],
-    });
+// initialOptions vem do servidor (ISR). Só vamos buscar ao browser se o servidor não conseguiu.
+export function VehicleOptionsProvider({ children, initialOptions = null }: { children: ReactNode, initialOptions?: VehicleOptions | null }) {
+    const [options, setOptions] = useState<VehicleOptions>(initialOptions ?? emptyOptions);
 
-    const fetchOptions = async () => {
+    const fetchOptions = useCallback(async () => {
         try {
             const response = await api.get('/vehicle-attributes/');
             setOptions({
@@ -41,11 +37,11 @@ export function VehicleOptionsProvider({ children }: { children: ReactNode }) {
         } catch (error) {
             console.error("Erro ao carregar opções de veículos:", error);
         }
-    };
+    }, []);
 
     useEffect(() => {
-        fetchOptions();
-    }, []);
+        if (!initialOptions) fetchOptions();
+    }, [initialOptions, fetchOptions]);
 
     return (
         <VehicleOptionsContext.Provider value={{ ...options, refreshOptions: fetchOptions }}>

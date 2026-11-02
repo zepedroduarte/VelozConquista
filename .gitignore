@@ -5,3 +5,8 @@ __pycache__/
 db.sqlite3
 node_modules/
 .next/
+# Local data dumps (contain password hashes / sessions)
+datadump.json
+*.sqlite3
+media/
+staticfiles/
