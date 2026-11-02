@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronLeft, Loader2, Upload, Euro, CarFront, Gauge, Zap, DoorOpen, Armchair, X, Calendar, Info, Settings, Banknote, ImageIcon, Star } from "lucide-react";
 import { useVehicleOptions } from "@/context/VehicleOptionsContext";
 import Image from 'next/image';
+import { resizeImageForUpload } from "@/lib/resize-image";
 
 const AddVehicleSchema = z.object({
   make: z.string().min(1, "Marca é obrigatória."),
@@ -121,7 +122,8 @@ export default function NewVehiclePage() {
             formData.append('year', values.year);
 
             if (selectedFiles.length > 0) {
-                selectedFiles.forEach((file) => {
+                const resizedFiles = await Promise.all(selectedFiles.map(resizeImageForUpload));
+                resizedFiles.forEach((file) => {
                     formData.append('images', file);
                 });
                 formData.append('primary_image_index', String(primaryIndex));

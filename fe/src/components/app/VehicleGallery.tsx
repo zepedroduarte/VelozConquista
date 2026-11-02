@@ -1,6 +1,6 @@
 'use client'
 
-import Image from "next/image";
+import { VehiclePhoto } from "@/components/app/VehiclePhoto";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -78,7 +78,7 @@ export function VehicleGallery({ images, alt }: VehicleGalleryProps) {
                     )}
 
                     <div className="relative w-full h-full max-w-7xl max-h-[90vh]">
-                        <Image
+                        <VehiclePhoto
                             src={images[lightboxIndex]}
                             alt={`${alt} - imagem ${lightboxIndex + 1}`}
                             fill
@@ -109,7 +109,7 @@ export function VehicleGallery({ images, alt }: VehicleGalleryProps) {
                 className="relative w-full aspect-video rounded-xl overflow-hidden shadow-lg bg-gray-100 border cursor-zoom-in group"
                 onClick={openLightbox}
             >
-                <Image
+                <VehiclePhoto
                     src={selectedImage}
                     alt={alt}
                     fill
@@ -154,7 +154,7 @@ export function VehicleGallery({ images, alt }: VehicleGalleryProps) {
                             onClick={() => setSelectedIndex(index)}
                             aria-label={`Ver imagem ${index + 1}`}
                         >
-                            <Image
+                            <VehiclePhoto
                                 src={src}
                                 alt={`${alt} - miniatura ${index + 1}`}
                                 fill

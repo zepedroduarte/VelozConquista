@@ -1,7 +1,7 @@
 // fe/src/components/app/VehicleCard.tsx (Componente Único e Reutilizável)
 
 import Link from "next/link";
-import Image from "next/image";
+import { VehiclePhoto } from "@/components/app/VehiclePhoto";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SlidersHorizontal, Fuel, Gauge, Car } from "lucide-react";
 import { Vehicle } from "@/lib/types";
@@ -25,7 +25,7 @@ export function VehicleCard({ vehicle, priority = false }: VehicleCardProps) {
         <Card className="overflow-hidden shadow-md transition-all hover:shadow-xl cursor-pointer flex flex-col h-full p-0 bg-white border-border/50 group">
     
             <div className="relative w-full aspect-[4/3] shrink-0 bg-gray-100 overflow-hidden">
-                <Image
+                <VehiclePhoto
                     src={imageUrl}
                     alt={`${details.make} ${details.model}`}
                     fill

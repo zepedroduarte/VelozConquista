@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronLeft, Loader2, Upload, Euro, CarFront, Gauge, Zap, DoorOpen, Armchair, X, Calendar, Info, Settings, Banknote, ImageIcon, Trash2, Star } from "lucide-react";
 import { useVehicleOptions } from "@/context/VehicleOptionsContext";
 import Image from 'next/image';
+import { resizeImageForUpload } from "@/lib/resize-image";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const VehicleSchema = z.object({
@@ -180,7 +181,8 @@ export default function EditVehiclePage({ params }: { params: Promise<{ id: stri
             formData.append('traction_type_id', values.traction_type_id);
 
             if (selectedFiles.length > 0) {
-                selectedFiles.forEach((file) => {
+                const resizedFiles = await Promise.all(selectedFiles.map(resizeImageForUpload));
+                resizedFiles.forEach((file) => {
                     formData.append('images', file);
                 });
             }

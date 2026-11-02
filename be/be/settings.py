@@ -199,6 +199,8 @@ STORAGES = {
 AZURE_ACCOUNT_NAME = os.getenv('AZURE_ACCOUNT_NAME', '')
 AZURE_ACCOUNT_KEY = os.getenv('AZURE_ACCOUNT_KEY', '')
 AZURE_CUSTOM_DOMAIN = f"{AZURE_ACCOUNT_NAME}.blob.core.windows.net" if AZURE_ACCOUNT_NAME else None
+# Photos never change once uploaded (a new upload gets a new name), so browsers can cache them for a year.
+AZURE_CACHE_CONTROL = "public, max-age=31536000, immutable"
 
 
 # Default primary key field type

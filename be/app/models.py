@@ -3,6 +3,7 @@ from django.db import models
 from django.dispatch import receiver
 from django.db.models.signals import post_delete
 from .utils import vehicle_image_upload_path
+from . import images
 from django.utils.text import slugify
 
 class CompanySettings(models.Model):
@@ -101,6 +102,18 @@ class VehicleImage(models.Model):
     def __str__(self):
         return f"Image for {self.vehicle_data.license_plate}"
 
+    def save(self, *args, **kwargs):
+        # New uploads are converted to WebP (see app/images.py) before being stored.
+        optimized = None
+        if self.image and not self.image._committed:
+            content, optimized = images.optimize(self.image)
+            self.image.save(content.name, content, save=False)
+
+        super().save(*args, **kwargs)
+
+        if optimized is not None:
+            images.save_variants(optimized, self.image.name, self.image.storage)
+
 class Customer(models.Model):
     name = models.TextField()
     phone = models.CharField(max_length=15)
@@ -166,3 +179,9 @@ def delete_storage_folder(sender, instance, **kwargs):
         print(f"⚠️ Aviso: Não foi possível apagar a pasta {folder_prefix}. Erro: {e}")
 
             
+
+@receiver(post_delete, sender=VehicleImage)
+def delete_image_variants(sender, instance, **kwargs):
+    """django_cleanup removes the main file; this removes the -w480/-w960 versions."""
+    if instance.image:
+        images.delete_variants(instance.image.name, instance.image.storage)
