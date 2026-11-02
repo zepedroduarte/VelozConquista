@@ -27,62 +27,73 @@ export default function AdminVehiclesPage() {
     const [isLoading, setIsLoading] = useState(true);
     
     const [currentPage, setCurrentPage] = useState(1);
-    const currentPageRef = useRef(currentPage);
-    
+
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+
+    // Cancela o pedido anterior: se o backend responder fora de ordem (ex.: carregar
+    // "Próxima" e "Anterior" rapidamente), uma resposta antiga nunca substitui a atual.
+    const abortRef = useRef<AbortController | null>(null);
 
     const fetchData = useCallback(async (page: number, search: string) => {
+        abortRef.current?.abort();
+        const controller = new AbortController();
+        abortRef.current = controller;
+
         setIsLoading(true);
         try {
             const params = new URLSearchParams();
             params.append('page', page.toString());
             if (search) params.append('search', search);
 
-            const response = await api.get(`/admin/vehicles/?${params.toString()}`);
+            const response = await api.get(`/admin/vehicles/?${params.toString()}`, { signal: controller.signal });
 
             const validatedData = z.array(VehicleSchema).parse(response.data.results);
-            
+
             setVehicles(validatedData);
             setTotalCount(response.data.count);
-            
-            const pageSize = 9;
-            setTotalPages(Math.ceil(response.data.count / pageSize));
 
+            const pageSize = 9;
+            setTotalPages(Math.max(1, Math.ceil(response.data.count / pageSize)));
 
         } catch (error) {
+            if (controller.signal.aborted) return;
             console.error("Erro ao carregar veículos:", error);
         } finally {
-            setIsLoading(false);
+            if (abortRef.current === controller) setIsLoading(false);
         }
-    }, []); 
+    }, []);
 
+    // Pesquisa só é enviada 400ms depois de parar de escrever, e volta sempre à página 1
     useEffect(() => {
-        currentPageRef.current = currentPage;
-    }, [currentPage]);
+        if (searchTerm === debouncedSearch) return;
 
-    useEffect(() => {
         const timer = setTimeout(() => {
-            if (currentPageRef.current !== 1) {
-                setCurrentPage(1);
-            } else {
-                fetchData(1, searchTerm);
-            }
-        }, 500);
+            setDebouncedSearch(searchTerm);
+            setCurrentPage(1);
+        }, 400);
 
         return () => clearTimeout(timer);
-    }, [searchTerm, fetchData]);
+    }, [searchTerm, debouncedSearch]);
 
+    // Um único pedido por combinação página + pesquisa
     useEffect(() => {
-        fetchData(currentPage, searchTerm);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentPage, fetchData]);
+        fetchData(currentPage, debouncedSearch);
+    }, [currentPage, debouncedSearch, fetchData]);
+
+    useEffect(() => () => abortRef.current?.abort(), []);
+
+    // Se apagarmos o último veículo de uma página, recua para a anterior
+    useEffect(() => {
+        if (currentPage > totalPages) setCurrentPage(totalPages);
+    }, [currentPage, totalPages]);
 
     const handleDelete = async (id: number) => {
         try {
             await api.delete(`/admin/vehicles/${id}/`);
-            fetchData(currentPage, searchTerm);
+            fetchData(currentPage, debouncedSearch);
         } catch (error) {
             console.error("Erro ao eliminar:", error);
         }
@@ -166,8 +177,8 @@ export default function AdminVehiclesPage() {
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-border bg-white">
-                                {isLoading ? (
+                            <tbody className={`divide-y divide-border bg-white transition-opacity ${isLoading && vehicles.length > 0 ? 'opacity-50 pointer-events-none' : ''}`}>
+                                {isLoading && vehicles.length === 0 ? (
                                     <tr>
                                         <td colSpan={8} className="h-24 text-center">
                                             <div className="flex justify-center items-center gap-2 text-muted-foreground">

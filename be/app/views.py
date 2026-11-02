@@ -31,6 +31,21 @@ from .serializers import (
     MessageSerializer
 )
 
+# Loads everything the serializers need in 2 queries instead of ~7 per vehicle.
+# '-id' is a tie-breaker so pagination is stable (no vehicle repeated/skipped between pages).
+VEHICLE_QUERYSET = (
+    Vehicle.objects
+    .select_related(
+        'status',
+        'vehicle_data__fuel_type',
+        'vehicle_data__transmission_type',
+        'vehicle_data__body_style',
+        'vehicle_data__traction_type',
+    )
+    .prefetch_related('vehicle_data__images')
+    .order_by('-created_at', '-id')
+)
+
 class AdminLoginView(TokenObtainPairView):
     serializer_class = AdminTokenObtainPairSerializer
     throttle_classes = [AnonRateThrottle]
@@ -50,7 +65,7 @@ class VehicleAttributesView(APIView):
     
 class PublicVehicleViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
-    queryset = Vehicle.objects.filter(status__name="Disponível").order_by('-created_at')
+    queryset = VEHICLE_QUERYSET.filter(status__name="Disponível")
     serializer_class = VehicleSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = VehicleFilter
@@ -58,7 +73,7 @@ class PublicVehicleViewSet(viewsets.ReadOnlyModelViewSet):
     
 class AdminVehicleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser] 
-    queryset = Vehicle.objects.all().order_by('-created_at')
+    queryset = VEHICLE_QUERYSET
     parser_classes = [MultiPartParser, FormParser, JSONParser] 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     
