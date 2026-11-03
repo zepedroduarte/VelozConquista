@@ -27,7 +27,8 @@ const VehicleDataSchema = z.object({
 
 export const VehicleSchema = z.object({
   id: z.number(),
-  created_at: z.string().datetime(),
+  // offset: o Django envia a hora de Lisboa (ex.: "+01:00" no verão), não só "Z"
+  created_at: z.string().datetime({ offset: true }),
   purchase_price: z.string(),
   retail_price: z.string(),
   status: NameObjectSchema,
