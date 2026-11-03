@@ -44,6 +44,18 @@ export interface VehicleOptions {
     status: APIVehicleOption[];
 }
 
+export interface LegalInfo {
+    legal_name: string;
+    credit_intermediary_number: string;
+    lenders: string;
+    services: string;
+    insurer: string;
+    insurance_policy_number: string;
+    insurance_valid_from: string;
+    insurance_valid_until: string;
+    updated_at?: string;
+}
+
 export interface CompanySettings {
     name: string;
     description: string;

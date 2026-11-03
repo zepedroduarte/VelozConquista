@@ -19,7 +19,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from .models import (
-    BodyStyle, CompanySettings, FuelType, Status, TractionType,
+    BodyStyle, CompanySettings, FuelType, LegalInfo, Status, TractionType,
     TransmissionType, Vehicle, VehicleData, VehicleImage,
 )
 
@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 TAG_VEHICLES = "vehicles"
 TAG_COMPANY = "company"
 TAG_ATTRIBUTES = "vehicle-attributes"
+TAG_LEGAL = "legal"
 
 # model -> tags that become stale when it changes
 MODEL_TAGS = {
@@ -35,6 +36,7 @@ MODEL_TAGS = {
     VehicleData: [TAG_VEHICLES],
     VehicleImage: [TAG_VEHICLES],
     CompanySettings: [TAG_COMPANY],
+    LegalInfo: [TAG_LEGAL],
     BodyStyle: [TAG_ATTRIBUTES, TAG_VEHICLES],
     FuelType: [TAG_ATTRIBUTES, TAG_VEHICLES],
     TransmissionType: [TAG_ATTRIBUTES, TAG_VEHICLES],

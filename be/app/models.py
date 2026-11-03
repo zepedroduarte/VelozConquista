@@ -116,25 +116,41 @@ class VehicleImage(models.Model):
 
 class Customer(models.Model):
     name = models.TextField()
-    phone = models.CharField(max_length=15)
-    email = models.TextField()
-    adress = models.TextField()
+    phone = models.CharField(max_length=20, blank=True)
+    email = models.TextField(blank=True)
+    address = models.TextField(blank=True)
+    nif = models.CharField("NIF", max_length=20, blank=True)
+    notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Cliente"
+
+    def __str__(self):
+        return self.name
 
 
 class SoldVehicle(models.Model):
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='sales')
+    # SET_NULL: apagar um cliente nunca apaga o registo da venda
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True, related_name='purchases')
     final_price = models.DecimalField(max_digits=18, decimal_places=2)
+    notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Venda"
 
 
 class VehicleService(models.Model):
     description = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=18, decimal_places=2)
     person = models.CharField(max_length=100, null=True, blank=True)
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='services')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Serviço / Custo"
 
 
 class Logs(models.Model):
@@ -151,7 +167,44 @@ class Messages(models.Model):
     message_date = models.DateTimeField()
     subject = models.CharField(max_length=255)
     body = models.TextField()
+    is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Mensagem"
+
+
+class LegalInfo(models.Model):
+    """
+    Informação legal da página "Sobre" (intermediário de crédito e seguro de RC profissional).
+    Singleton editável no back-office: a apólice muda de 3 em 3 meses.
+    """
+    legal_name = models.CharField("Denominação social", max_length=200)
+    credit_intermediary_number = models.CharField("N.º de registo de intermediário de crédito", max_length=50)
+    lenders = models.TextField("Mutuantes com contrato de vinculação", help_text="Um por linha")
+    services = models.TextField("Serviços de intermediação de crédito", help_text="Um por linha")
+
+    insurer = models.CharField("Seguradora", max_length=200)
+    insurance_policy_number = models.CharField("N.º da apólice", max_length=100)
+    insurance_valid_from = models.DateField("Apólice válida de")
+    insurance_valid_until = models.DateField("Apólice válida até")
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Informação Legal / Página Sobre"
+        verbose_name_plural = "Informação Legal / Página Sobre"
+
+    def __str__(self):
+        return self.legal_name
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        return cls.objects.filter(pk=1).first()
             
 @receiver(post_delete, sender=VehicleData)
 def delete_storage_folder(sender, instance, **kwargs):

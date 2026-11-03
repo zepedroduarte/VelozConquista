@@ -3,7 +3,7 @@
 // Django calls /api/revalidate (on-demand) or after REVALIDATE_SECONDS as a fallback.
 // Visitors never wait for the Azure backend.
 import "server-only";
-import { CompanySettings, Vehicle, VehicleOptions } from "./types";
+import { CompanySettings, LegalInfo, Vehicle, VehicleOptions } from "./types";
 
 const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -13,6 +13,7 @@ export const CACHE_TAGS = {
     vehicles: "vehicles",
     company: "company",
     attributes: "vehicle-attributes",
+    legal: "legal",
 } as const;
 
 async function apiGet<T>(path: string, tags: string[]): Promise<T | null> {
@@ -63,6 +64,11 @@ export async function getLatestVehicles(limit = 3): Promise<Vehicle[]> {
 export async function getVehicle(id: string): Promise<Vehicle | null> {
     if (!/^\d+$/.test(id)) return null;
     return apiGet<Vehicle>(`/vehicles/${id}/`, [CACHE_TAGS.vehicles]);
+}
+
+/** Página "Sobre": intermediário de crédito e apólice de seguro (editável no back-office). */
+export async function getLegalInfo(): Promise<LegalInfo | null> {
+    return apiGet<LegalInfo>(`/legal-info/`, [CACHE_TAGS.legal]);
 }
 
 /** Never throws: the layout falls back to client-side fetching if the backend is unreachable. */

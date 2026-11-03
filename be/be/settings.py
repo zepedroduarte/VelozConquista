@@ -167,9 +167,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pt-pt'
 
-TIME_ZONE = 'UTC'
+# Datas/meses do back-office (ex.: "vendas este mês") calculados na hora de Lisboa
+TIME_ZONE = 'Europe/Lisbon'
 
 USE_I18N = True
 

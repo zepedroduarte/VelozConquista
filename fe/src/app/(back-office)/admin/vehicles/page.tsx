@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { PlusCircle, Edit, Trash2, Search, Car, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Search, Car, ChevronLeft, ChevronRight, Loader2, Wrench } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import api from "@/lib/axios";
 import { Vehicle, VehicleSchema } from "@/schemas/Vehicle";
 import z from "zod";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { SellVehicleDialog } from "@/components/app/SellVehicleDialog";
+import { SaleData, SellVehicleDialog } from "@/components/app/SellVehicleDialog";
+import { apiErrorMessage } from "@/lib/admin";
 
 function formatPrice(price: string): string {
   const numericPrice = parseFloat(price);
@@ -99,18 +100,15 @@ export default function AdminVehiclesPage() {
         }
     };
 
-    const handleSale = async (id: number, finalPrice: string) => {
+    const handleSale = async (id: number, sale: SaleData) => {
         try {
-            await api.post(`/admin/vehicles/${id}/mark_sold/`, {
-                final_price: finalPrice
-            });
+            await api.post(`/admin/vehicles/${id}/mark_sold/`, sale);
 
-            // Atualização local otimista
+            // Atualização local otimista (a venda fica no "Registo de Vendas")
             setVehicles((prev) => prev.map(vehicle => {
                 if (vehicle.id === id) {
                     return {
                         ...vehicle,
-                        retail_price: finalPrice, 
                         status: { ...vehicle.status, name: 'Vendido'}
                     };
                 }
@@ -118,7 +116,7 @@ export default function AdminVehiclesPage() {
             }));
         } catch (error) {
             console.error("Erro ao registar venda:", error);
-            alert("Erro ao registar venda.");
+            alert(apiErrorMessage(error));
         }
     };
 
@@ -228,6 +226,11 @@ export default function AdminVehiclesPage() {
                                                 <Link href={`/admin/vehicles/${vehicle.id}/edit`} passHref>
                                                     <Button variant="ghost" size="icon" title="Editar Veículo" className="h-8 w-8">
                                                         <Edit className="size-4 text-primary" />
+                                                    </Button>
+                                                </Link>
+                                                <Link href={`/admin/services?vehicle=${vehicle.id}`} passHref>
+                                                    <Button variant="ghost" size="icon" title="Custos / Oficina" className="h-8 w-8">
+                                                        <Wrench className="size-4 text-muted-foreground" />
                                                     </Button>
                                                 </Link>
            

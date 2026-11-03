@@ -2,7 +2,8 @@ from rest_framework import serializers
 from django.db import transaction
 from .models import (
     CompanySettings, Vehicle, VehicleData, Status, BodyStyle, FuelType, 
-    TransmissionType, TractionType, Messages, VehicleImage
+    TransmissionType, TractionType, Messages, VehicleImage,
+    Customer, LegalInfo, SoldVehicle, VehicleService
 )
 
 class AdminTokenObtainPairSerializer(serializers.Serializer):
@@ -218,3 +219,94 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Messages
         fields = ['sender_name', 'sender_email', 'sender_phone_number', 'subject', 'body']
+
+# --- Back-office (CMS) ---
+
+class LegalInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LegalInfo
+        exclude = ['id']
+        read_only_fields = ['updated_at']
+
+    def validate(self, data):
+        valid_from = data.get('insurance_valid_from', getattr(self.instance, 'insurance_valid_from', None))
+        valid_until = data.get('insurance_valid_until', getattr(self.instance, 'insurance_valid_until', None))
+        if valid_from and valid_until and valid_until < valid_from:
+            raise serializers.ValidationError({'insurance_valid_until': 'A data final tem de ser posterior à data inicial.'})
+        return data
+
+
+class AdminCompanySettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanySettings
+        fields = [
+            'name', 'description', 'phone', 'email', 'address',
+            'facebook_url', 'instagram_url', 'whatsapp_number',
+        ]
+
+
+class AdminMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Messages
+        fields = ['id', 'sender_name', 'sender_email', 'sender_phone_number', 'subject', 'body', 'is_read', 'created_at']
+        read_only_fields = ['sender_name', 'sender_email', 'sender_phone_number', 'subject', 'body', 'created_at']
+
+
+class AttributeSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(max_length=50)
+
+
+class CustomerSerializer(serializers.ModelSerializer):
+    purchases_count = serializers.IntegerField(read_only=True, default=0)
+
+    class Meta:
+        model = Customer
+        fields = ['id', 'name', 'phone', 'email', 'address', 'nif', 'notes', 'purchases_count', 'created_at']
+        read_only_fields = ['created_at']
+
+
+class VehicleSummarySerializer(serializers.ModelSerializer):
+    make = serializers.CharField(source='vehicle_data.make')
+    model = serializers.CharField(source='vehicle_data.model')
+    year = serializers.IntegerField(source='vehicle_data.year')
+    license_plate = serializers.CharField(source='vehicle_data.license_plate')
+    status = serializers.CharField(source='status.name')
+
+    class Meta:
+        model = Vehicle
+        fields = ['id', 'make', 'model', 'year', 'license_plate', 'purchase_price', 'retail_price', 'status']
+
+
+class VehicleServiceSerializer(serializers.ModelSerializer):
+    vehicle_summary = VehicleSummarySerializer(source='vehicle', read_only=True)
+
+    class Meta:
+        model = VehicleService
+        fields = ['id', 'vehicle', 'vehicle_summary', 'description', 'price', 'person', 'created_at']
+        read_only_fields = ['created_at']
+
+
+class SaleSerializer(serializers.ModelSerializer):
+    vehicle = VehicleSummarySerializer(read_only=True)
+    customer = CustomerSerializer(read_only=True)
+    services_total = serializers.DecimalField(max_digits=18, decimal_places=2, read_only=True)
+    profit = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SoldVehicle
+        fields = ['id', 'vehicle', 'customer', 'final_price', 'notes', 'services_total', 'profit', 'created_at']
+
+    def get_profit(self, obj):
+        services = obj.services_total or 0
+        return str(obj.final_price - obj.vehicle.purchase_price - services)
+
+
+class MarkSoldSerializer(serializers.Serializer):
+    final_price = serializers.DecimalField(max_digits=18, decimal_places=2, required=False)
+    customer_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), required=False, allow_null=True)
+    customer_name = serializers.CharField(required=False, allow_blank=True)
+    customer_phone = serializers.CharField(required=False, allow_blank=True, max_length=20)
+    customer_email = serializers.EmailField(required=False, allow_blank=True)
+    customer_nif = serializers.CharField(required=False, allow_blank=True, max_length=20)
+    notes = serializers.CharField(required=False, allow_blank=True)

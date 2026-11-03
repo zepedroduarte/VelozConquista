@@ -2,13 +2,17 @@
 
 import { useAuth } from "@/context/AuthContext"; 
 import { useRouter } from "next/navigation"; 
-import { useEffect } from "react"; 
+import { useEffect, useState } from "react";
 import api from '@/lib/axios';
 import { AdminSidebar } from "@/components/app/adminSidebar";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { isAuthenticated, logout, isLoading } = useAuth();
     const router = useRouter();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 
     useEffect(() => {
@@ -20,7 +24,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             }
 
             try {
-                await api.get('/admin/vehicles/'); 
+                await api.get('/admin/settings/company/');
             } catch {
                 logout();
             }
@@ -44,7 +48,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <AdminSidebar />
                 </div>
 
-                <main className="lg:col-start-2 w-full">
+                {/* Telemóvel: barra no topo com menu */}
+                <div className="lg:hidden sticky top-0 z-40 flex items-center gap-3 border-b bg-background px-4 h-14">
+                    <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                        <SheetTrigger asChild>
+                            <Button variant="outline" size="icon" aria-label="Abrir menu">
+                                <Menu className="size-5" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0 w-[270px]">
+                            <SheetTitle className="sr-only">Menu de administração</SheetTitle>
+                            <AdminSidebar onNavigate={() => setIsMenuOpen(false)} />
+                        </SheetContent>
+                    </Sheet>
+                    <span className="font-semibold">Administração</span>
+                </div>
+
+                <main className="lg:col-start-2 w-full min-w-0">
                     {children}
                 </main>
             </div>

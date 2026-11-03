@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.utils import timezone
 from rest_framework import viewsets, mixins, generics
 from rest_framework.response import Response
@@ -8,13 +9,14 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.viewsets import GenericViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.pagination import PageNumberPagination
 from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.throttling import AnonRateThrottle
 from django.utils.html import strip_tags
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import BodyStyle, CompanySettings, FuelType, Status, TractionType, TransmissionType, Vehicle, Messages, VehicleImage
+from .models import BodyStyle, CompanySettings, Customer, FuelType, SoldVehicle, Status, TractionType, TransmissionType, Vehicle, Messages, VehicleImage
 from .filters import VehicleFilter
 from .serializers import (
     AdminTokenObtainPairSerializer,
@@ -28,7 +30,8 @@ from .serializers import (
     VehicleSerializer,
     AdminVehicleCreateSerializer,
     AdminVehicleReadSerializer,
-    MessageSerializer
+    MessageSerializer,
+    MarkSoldSerializer,
 )
 
 # Loads everything the serializers need in 2 queries instead of ~7 per vehicle.
@@ -71,9 +74,16 @@ class PublicVehicleViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = VehicleFilter
     ordering_fields = ['created_at', 'retail_price', 'vehicle_data__mileage']
     
+class AdminPagination(PageNumberPagination):
+    # ?page_size=500 lets back-office dropdowns load every vehicle in one request
+    page_size_query_param = 'page_size'
+    max_page_size = 500
+
+
 class AdminVehicleViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAdminUser] 
+    permission_classes = [IsAdminUser]
     queryset = VEHICLE_QUERYSET
+    pagination_class = AdminPagination
     parser_classes = [MultiPartParser, FormParser, JSONParser] 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     
@@ -98,21 +108,39 @@ class AdminVehicleViewSet(viewsets.ModelViewSet):
             
     @action(detail=True, methods=['post'])
     def mark_sold(self, request, pk=None):
+        """Marks the vehicle as sold and records the sale (and the customer, if given)."""
         vehicle = self.get_object()
-        final_price = request.data.get('final_price')
+        serializer = MarkSoldSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
 
-        try:
-            sold_status = Status.objects.get(name="Vendido")
-            
+        sold_status = Status.objects.filter(name="Vendido").first()
+        if not sold_status:
+            return Response({'error': 'Status Vendido não encontrado'}, status=400)
+        if vehicle.status_id == sold_status.id:
+            return Response({'error': 'Este veículo já está marcado como vendido.'}, status=400)
+
+        with transaction.atomic():
+            customer = data.get('customer_id')
+            if not customer and data.get('customer_name', '').strip():
+                customer = Customer.objects.create(
+                    name=data['customer_name'].strip(),
+                    phone=data.get('customer_phone', ''),
+                    email=data.get('customer_email', ''),
+                    nif=data.get('customer_nif', ''),
+                )
+
+            sale = SoldVehicle.objects.create(
+                vehicle=vehicle,
+                customer=customer,
+                final_price=data.get('final_price') or vehicle.retail_price,
+                notes=data.get('notes', ''),
+            )
+
             vehicle.status = sold_status
+            vehicle.save(update_fields=['status'])
 
-            if final_price:
-                vehicle.retail_price = final_price
-            
-            vehicle.save()
-            return Response({'status': 'Veículo marcado como vendido', 'price': vehicle.retail_price})
-        except Status.DoesNotExist:
-            return Response({'error': 'Status Vendido não encontrado'}, status=400)       
+        return Response({'status': 'Veículo marcado como vendido', 'sale_id': sale.id, 'price': str(sale.final_price)})
     
 class AdminVehicleImageViewSet(mixins.DestroyModelMixin, mixins.UpdateModelMixin, GenericViewSet):
     permission_classes = [IsAdminUser]
