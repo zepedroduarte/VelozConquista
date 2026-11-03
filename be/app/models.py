@@ -18,6 +18,19 @@ class CompanySettings(models.Model):
     whatsapp_number = models.CharField(max_length=20, blank=True, null=True)
 
     logo = models.ImageField(upload_to='company/', blank=True, null=True)
+
+    # --- SEO local (Google, mapas e assistentes de IA) ---
+    postal_code = models.CharField("Código postal", max_length=10, blank=True)
+    locality = models.CharField("Localidade", max_length=100, blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    google_maps_url = models.URLField("Link do Google Maps", blank=True)
+    # "09:00-19:00" ou "09:00-13:00, 14:30-19:00"; vazio = fechado
+    weekday_hours = models.CharField("Horário segunda a sexta", max_length=50, blank=True)
+    saturday_hours = models.CharField("Horário sábado", max_length=50, blank=True)
+    sunday_hours = models.CharField("Horário domingo", max_length=50, blank=True)
+    service_areas = models.TextField("Zonas servidas", blank=True, help_text="Uma por linha")
+
     class Meta:
         verbose_name = "Definições da Empresa"
         verbose_name_plural = "Definições da Empresa"

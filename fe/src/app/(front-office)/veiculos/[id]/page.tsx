@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
@@ -9,10 +9,12 @@ import {
 } from "lucide-react";
 import { DetailItem } from "@/components/app/DetailItem";
 import { VehicleGallery } from "@/components/app/VehicleGallery";
-import { getAllVehicles, getVehicle } from "@/lib/api-server";
+import { JsonLd } from "@/components/app/JsonLd";
+import { breadcrumbJsonLd, carJsonLd } from "@/lib/seo";
+import { getAllVehicles, getCompany, getVehicle } from "@/lib/api-server";
 import {
     formatEngineSize, formatMileage, formatPrice, getImageUrl,
-    getPrimaryImageUrl, PLACEHOLDER_IMAGE, vehicleTitle
+    getPrimaryImageUrl, PLACEHOLDER_IMAGE, vehicleHref, vehicleIdFromSlug, vehicleSlug, vehicleTitle
 } from "@/lib/vehicle";
 
 interface VehicleDetailsProps {
@@ -23,7 +25,7 @@ interface VehicleDetailsProps {
 export async function generateStaticParams() {
     try {
         const vehicles = await getAllVehicles();
-        return vehicles.map((v) => ({ id: String(v.id) }));
+        return vehicles.map((v) => ({ id: vehicleSlug(v) }));
     } catch {
         return [];
     }
@@ -31,18 +33,19 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: VehicleDetailsProps): Promise<Metadata> {
     const { id } = await params;
-    const vehicle = await getVehicle(id);
-    if (!vehicle) return { title: "Veículo não encontrado | Veloz Conquista" };
+    const [vehicle, company] = await Promise.all([getVehicle(vehicleIdFromSlug(id) ?? ""), getCompany()]);
+    if (!vehicle) return { title: "Veículo não encontrado" };
 
     const details = vehicle.vehicle_data;
-    const title = `${vehicleTitle(vehicle)} ${details.year} | Veloz Conquista`;
-    const description = `${details.make} ${details.model} de ${details.year}, ${formatMileage(details.mileage)}, ${details.fuel_type.name}, ${details.transmission_type.name}. ${formatPrice(vehicle.retail_price)}. Financiamento até 120 meses.`;
+    const locality = company?.locality || "Loures";
+    const title = `${vehicleTitle(vehicle)} ${details.year} usado em ${locality} · ${formatPrice(vehicle.retail_price)}`;
+    const description = `${details.make} ${details.model} de ${details.year} à venda em ${locality}: ${formatMileage(details.mileage)}, ${details.fuel_type.name}, caixa ${details.transmission_type.name.toLowerCase()}. ${formatPrice(vehicle.retail_price)}, financiamento até 120 meses.`;
     const image = getPrimaryImageUrl(vehicle);
 
     return {
         title,
         description,
-        alternates: { canonical: `/veiculos/${vehicle.id}` },
+        alternates: { canonical: vehicleHref(vehicle) },
         openGraph: {
             title,
             description,
@@ -53,9 +56,12 @@ export async function generateMetadata({ params }: VehicleDetailsProps): Promise
 
 export default async function VehicleDetailsPage({ params }: VehicleDetailsProps) {
     const { id } = await params;
-    const vehicle = await getVehicle(id);
+    const vehicle = await getVehicle(vehicleIdFromSlug(id) ?? "");
 
     if (!vehicle) notFound();
+
+    // Links antigos (/veiculos/20) ou com o nome desatualizado → endereço oficial
+    if (id !== vehicleSlug(vehicle)) permanentRedirect(vehicleHref(vehicle));
 
     const details = vehicle.vehicle_data;
 
@@ -67,6 +73,12 @@ export default async function VehicleDetailsPage({ params }: VehicleDetailsProps
 
     return (
         <main className="flex-1 py-16 bg-white">
+            <JsonLd data={carJsonLd(vehicle)} />
+            <JsonLd data={breadcrumbJsonLd([
+                { name: "Início", path: "/" },
+                { name: "Viaturas", path: "/veiculos" },
+                { name: vehicleTitle(vehicle), path: vehicleHref(vehicle) },
+            ])} />
             <div className="w-[70vw] mx-auto space-y-10">
 
                 <div className="flex flex-col gap-2">

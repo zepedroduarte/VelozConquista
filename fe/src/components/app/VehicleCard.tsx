@@ -5,7 +5,7 @@ import { VehiclePhoto } from "@/components/app/VehiclePhoto";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SlidersHorizontal, Fuel, Gauge, Car } from "lucide-react";
 import { Vehicle } from "@/lib/types";
-import { formatPrice, getPrimaryImageUrl } from "@/lib/vehicle";
+import { formatPrice, getPrimaryImageUrl, vehicleHref } from "@/lib/vehicle";
 
 interface VehicleCardProps {
     vehicle: Vehicle; 
@@ -21,7 +21,7 @@ export function VehicleCard({ vehicle, priority = false }: VehicleCardProps) {
     const engineLiter = details.engine_size ? (parseFloat(details.engine_size) / 1000).toFixed(1) : "0.0";
 
     return (
-        <Link href={`/veiculos/${vehicle.id}`} className="block h-full">
+        <Link href={vehicleHref(vehicle)} className="block h-full">
         <Card className="overflow-hidden shadow-md transition-all hover:shadow-xl cursor-pointer flex flex-col h-full p-0 bg-white border-border/50 group">
     
             <div className="relative w-full aspect-[4/3] shrink-0 bg-gray-100 overflow-hidden">

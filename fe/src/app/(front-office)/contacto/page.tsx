@@ -6,7 +6,8 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
+import { openingHoursRows } from "@/lib/seo";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -83,22 +84,39 @@ export default function Contact() {
                 <div className="flex items-center space-x-3 text-lg">
                   <Phone className="w-5 h-5 text-red-600 shrink-0" />
                   <span className="text-foreground">
-                    {company?.phone} <span className="italic">(Chamada para rede móvel nacional)</span>
+                    <a href={`tel:${company?.phone?.replace(/\s/g, "")}`} className="hover:text-red-600">{company?.phone}</a> <span className="italic text-sm text-muted-foreground">(Chamada para rede móvel nacional)</span>
                   </span>
                 </div>
 
                 <div className="flex items-center space-x-3 text-lg">
                   <Mail className="w-5 h-5 text-red-600 shrink-0" />
-                  <span className="text-foreground">
+                  <a href={`mailto:${company?.email}`} className="text-foreground hover:text-red-600 break-all">
                     {company?.email}
-                  </span>
+                  </a>
                 </div>
                 
                 <div className="flex space-x-3 text-lg items-start">
                   <MapPin className="w-5 h-5 text-red-600 shrink-0 mt-1" />
                   <address className="not-italic flex flex-col">
                     <span className="text-foreground">{company?.address}</span>
+                    {company?.google_maps_url && (
+                      <a href={company.google_maps_url} target="_blank" rel="noopener noreferrer" className="mt-2 w-fit rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700">
+                        Como chegar (Google Maps)
+                      </a>
+                    )}
                   </address>
+                </div>
+
+                <div className="flex space-x-3 text-lg items-start">
+                  <Clock className="w-5 h-5 text-red-600 shrink-0 mt-1" />
+                  <dl className="text-base space-y-1">
+                    {openingHoursRows(company).map((row) => (
+                      <div key={row.label} className="flex gap-3">
+                        <dt className="text-muted-foreground w-36">{row.label}</dt>
+                        <dd className="text-foreground">{row.text}</dd>
+                      </div>
+                    ))}
+                  </dl>
                 </div>
               </div>
 

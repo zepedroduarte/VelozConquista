@@ -66,4 +66,13 @@ export interface CompanySettings {
     instagram_url?: string;
     whatsapp_number?: string;
     logo?: string;
+    postal_code?: string;
+    locality?: string;
+    latitude?: string | null;
+    longitude?: string | null;
+    google_maps_url?: string;
+    weekday_hours?: string;
+    saturday_hours?: string;
+    sunday_hours?: string;
+    service_areas?: string;
 }

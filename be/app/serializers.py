@@ -248,7 +248,40 @@ class AdminCompanySettingsSerializer(serializers.ModelSerializer):
         fields = [
             'name', 'description', 'phone', 'email', 'address',
             'facebook_url', 'instagram_url', 'whatsapp_number',
+            'postal_code', 'locality', 'latitude', 'longitude', 'google_maps_url',
+            'weekday_hours', 'saturday_hours', 'sunday_hours', 'service_areas',
         ]
+
+    def to_internal_value(self, data):
+        # Coordinates pasted from Google Maps: "38.8912345" or "38,8912345" or empty
+        data = data.copy()
+        for field in ('latitude', 'longitude'):
+            value = data.get(field)
+            if value in ('', None):
+                data[field] = None
+            else:
+                try:
+                    data[field] = str(round(float(str(value).replace(',', '.')), 6))
+                except ValueError:
+                    pass  # the field validator reports the error
+        return super().to_internal_value(data)
+
+    HOURS_PATTERN =r'^\s*\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}\s*(,\s*\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}\s*)*$'
+
+    def _validate_hours(self, value):
+        import re
+        if value and not re.match(self.HOURS_PATTERN, value):
+            raise serializers.ValidationError('Use o formato 09:00-19:00 (ou 09:00-13:00, 14:30-19:00). Deixe vazio se estiver fechado.')
+        return value.strip()
+
+    def validate_weekday_hours(self, value):
+        return self._validate_hours(value)
+
+    def validate_saturday_hours(self, value):
+        return self._validate_hours(value)
+
+    def validate_sunday_hours(self, value):
+        return self._validate_hours(value)
 
 
 class AdminMessageSerializer(serializers.ModelSerializer):

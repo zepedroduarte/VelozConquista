@@ -1,7 +1,8 @@
 // Chamado pelo Django sempre que algo muda no admin (ver be/app/revalidation.py).
 // Invalida a cache ISR das páginas afetadas para que a próxima visita já veja os dados novos.
 import { revalidateTag } from "next/cache";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
+import { submitInventoryToIndexNow } from "@/lib/indexnow";
 import { timingSafeEqual } from "crypto";
 import { CACHE_TAGS } from "@/lib/api-server";
 
@@ -37,6 +38,9 @@ export async function POST(request: NextRequest) {
 
     // expire: 0 => a próxima visita recebe logo a versão nova (em vez de stale-while-revalidate)
     revalidated.forEach((tag) => revalidateTag(tag, { expire: 0 }));
+
+    // Stock mudou → avisa os motores de busca, depois de responder ao Django
+    if (revalidated.includes(CACHE_TAGS.vehicles)) after(submitInventoryToIndexNow);
 
     return NextResponse.json({ revalidated, now: Date.now() });
 }

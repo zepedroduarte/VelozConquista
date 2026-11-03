@@ -3,8 +3,9 @@ import Link from "next/link";
 import { getCompany, getLegalInfo } from "@/lib/api-server";
 
 export const metadata: Metadata = {
-    title: "Sobre Nós | Veloz Conquista",
-    description: "Conheça a Veloz Conquista, comércio de automóveis usados e semi-novos e intermediário de crédito registado no Banco de Portugal.",
+    title: "Sobre Nós · Stand em Ponte de Lousa, Loures",
+    description: "Conheça a Veloz Conquista: stand de automóveis usados e semi-novos em Ponte de Lousa, Loures, e intermediário de crédito registado no Banco de Portugal.",
+    alternates: { canonical: "/sobre" },
 };
 
 // Texto editado no back-office: cada linha é um parágrafo.

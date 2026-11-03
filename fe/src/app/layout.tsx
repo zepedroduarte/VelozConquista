@@ -23,8 +23,24 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Veloz Conquista",
-  description: "Comércio de automóveis usados e semi-novos.",
+  title: {
+    default: "Stand de Carros Usados em Loures | Veloz Conquista",
+    template: "%s | Veloz Conquista",
+  },
+  description: "Stand de automóveis usados e semi-novos em Ponte de Lousa, Loures. Financiamento automóvel até 120 meses e atendimento personalizado.",
+  applicationName: "Veloz Conquista",
+  openGraph: {
+    type: "website",
+    locale: "pt_PT",
+    siteName: "Veloz Conquista",
+  },
+  // Códigos de verificação do Google Search Console e do Bing Webmaster Tools (variáveis na Vercel)
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+    other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+      : undefined,
+  },
 };
 
 export default async function RootLayout({
@@ -38,7 +54,7 @@ export default async function RootLayout({
   preconnect(IMAGE_HOST);
 
   return (
-    <html lang="pt">
+    <html lang="pt-PT">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground min-h-screen flex flex-col`}
       >
