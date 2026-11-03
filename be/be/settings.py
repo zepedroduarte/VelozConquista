@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'app.apps.AppConfig',  
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'rest_framework.authtoken',
     'django_cleanup.apps.CleanupConfig', 
@@ -122,7 +123,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 9,
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '5/day', 
+        'anon': '5/day',
+        # Per IP. Mobile networks put many customers behind one IP, so the contact
+        # form limit is generous; the honeypot field stops most spam bots.
+        'login': '10/hour',
+        'contact': '20/hour',
     }
 }
 
@@ -130,7 +135,19 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "AUTH_HEADER_TYPES": ("Bearer",),
+    # Each refresh issues a new refresh token and invalidates the old one;
+    # logging out invalidates it too (token/blacklist/).
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
 }
+
+# Django admin URL (emergency fallback). Set DJANGO_ADMIN_URL to something hard to guess.
+DJANGO_ADMIN_URL = os.getenv('DJANGO_ADMIN_URL', 'admin/').strip('/') + '/'
+
+# Uploads: at most 40 photos per request, each up to 25 MB (checked in the serializer)
+DATA_UPLOAD_MAX_NUMBER_FILES = 40
+MAX_IMAGE_UPLOAD_SIZE = 25 * 1024 * 1024
 
 WSGI_APPLICATION = 'be.wsgi.application'
 

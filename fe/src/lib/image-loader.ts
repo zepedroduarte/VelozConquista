@@ -1,6 +1,7 @@
 // Loader do next/image para as fotos das viaturas: em vez de usar a otimização da Vercel
 // (com quota mensal), escolhe a versão WebP já gerada pelo Django com o tamanho mais adequado.
 // Convenção de nomes definida em be/app/images.py: foto.webp, foto-w960.webp, foto-w480.webp
+// (as versões -w960/-w480 são recortadas a 4:3; para a foto inteira use <VehiclePhoto fullFrame />)
 import type { ImageLoaderProps } from "next/image";
 
 const VARIANT_WIDTHS = [480, 960];

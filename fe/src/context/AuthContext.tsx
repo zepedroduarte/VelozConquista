@@ -44,6 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    // Invalida a sessão no servidor (se alguém copiou o token, deixa de servir)
+    const refresh = localStorage.getItem("refresh");
+    if (refresh) api.post("/token/blacklist/", { refresh }).catch(() => {});
+
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
     setIsAuthenticated(false);

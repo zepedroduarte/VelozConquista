@@ -12,7 +12,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from django.core.mail import send_mail
 from django.conf import settings
-from rest_framework.throttling import AnonRateThrottle
+from rest_framework.throttling import ScopedRateThrottle
 from django.utils.html import strip_tags
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -51,7 +51,8 @@ VEHICLE_QUERYSET = (
 
 class AdminLoginView(TokenObtainPairView):
     serializer_class = AdminTokenObtainPairSerializer
-    throttle_classes = [AnonRateThrottle]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'login'
 
 class VehicleAttributesView(APIView):
     permission_classes = [AllowAny]  
@@ -167,7 +168,15 @@ class CompanySettingsView(APIView):
 class MessageCreateViewSet(generics.CreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = MessageSerializer
-    throttle_classes = [AnonRateThrottle]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'contact'
+
+    def create(self, request, *args, **kwargs):
+        # Honeypot: a hidden field real visitors never fill. Bots get a normal
+        # "success" so they don't adapt, but nothing is saved or emailed.
+        if request.data.get('website'):
+            return Response(status=201)
+        return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         instance = serializer.save(message_date=timezone.now())

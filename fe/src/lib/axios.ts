@@ -74,6 +74,8 @@ api.interceptors.response.use(
 
         const newAccessToken = res.data.access;
         localStorage.setItem("access", newAccessToken);
+        // O backend roda o refresh token a cada renovação (o antigo deixa de funcionar)
+        if (res.data.refresh) localStorage.setItem("refresh", res.data.refresh);
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
         processQueue(null, newAccessToken);

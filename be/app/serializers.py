@@ -56,6 +56,12 @@ class TractionTypeSerializer(serializers.ModelSerializer):
         model = TractionType
         fields = ['id', 'name']
 
+def validate_image_size(image):
+    from django.conf import settings
+    if image.size > settings.MAX_IMAGE_UPLOAD_SIZE:
+        raise serializers.ValidationError(f"A foto '{image.name}' tem mais de 25 MB.")
+
+
 class VehicleImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = VehicleImage
@@ -124,7 +130,7 @@ class AdminVehicleCreateSerializer(serializers.ModelSerializer):
     )
 
     images = serializers.ListField(
-        child=serializers.ImageField(allow_empty_file=False, use_url=False),
+        child=serializers.ImageField(allow_empty_file=False, use_url=False, validators=[validate_image_size]),
         write_only=True,
         required=False
     )

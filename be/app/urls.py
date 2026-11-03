@@ -3,6 +3,7 @@ from django.urls import path, include
 from . import views, backoffice_views
 from .models import BodyStyle, FuelType, TractionType, TransmissionType
 from rest_framework_simplejwt.views import (
+    TokenBlacklistView,
     TokenRefreshView,
 )
 
@@ -32,5 +33,6 @@ urlpatterns = [
     path('admin/settings/legal/', backoffice_views.AdminLegalInfoView.as_view(), name='admin-legal-info'),
     path("token/", views.AdminLoginView.as_view()),
     path("token/refresh/", TokenRefreshView.as_view()),
+    path("token/blacklist/", TokenBlacklistView.as_view()),
     path('', include(router.urls)),
 ]

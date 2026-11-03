@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ListFilter } from "lucide-react";
 import { useMemo, useState } from 'react';
 import { VehicleCard } from "@/components/app/VehicleCard";
@@ -86,10 +86,10 @@ export function VehicleInventory({ vehicles }: { vehicles: Vehicle[] }) {
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
                     <aside className="hidden lg:block lg:col-span-1 space-y-6">
-                        <div className="flex items-center gap-2 text-lg font-semibold text-foreground/80">
+                        <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground/80">
                             <ListFilter className="size-5 text-red-600" />
                             Filtrar por
-                        </div>
+                        </h2>
                         <VehicleFilters key={resetKey} onFilterChange={handleFiltersUpdate} />
                     </aside>
 
@@ -103,6 +103,7 @@ export function VehicleInventory({ vehicles }: { vehicles: Vehicle[] }) {
                                         </Button>
                                     </SheetTrigger>
                                     <SheetContent side="left" className="overflow-y-auto w-[300px]">
+                                        <SheetTitle className="sr-only">Filtrar viaturas</SheetTitle>
                                         <div className="py-6 space-y-8 m-5">
                                             <VehicleFilters key={resetKey} onFilterChange={handleFiltersUpdate} />
                                         </div>
@@ -116,7 +117,7 @@ export function VehicleInventory({ vehicles }: { vehicles: Vehicle[] }) {
 
                             <div className="w-full sm:w-[240px]">
                                 <Select onValueChange={(value) => { setOrdering(value as Ordering); setCurrentPage(1); }} defaultValue="-created_at">
-                                    <SelectTrigger className="w-full bg-white">
+                                    <SelectTrigger className="w-full bg-white" aria-label="Ordenar por">
                                         <SelectValue placeholder="Ordenar por" />
                                     </SelectTrigger>
                                     <SelectContent>

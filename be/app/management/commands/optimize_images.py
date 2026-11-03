@@ -3,6 +3,7 @@ Convert vehicle photos uploaded before the automatic optimisation existed.
 
     python manage.py optimize_images --dry-run   # only lists what would change
     python manage.py optimize_images             # converts everything
+    python manage.py optimize_images --rebuild-variants   # regenerates the small versions of every photo
 
 Safe to run more than once: photos already converted are skipped.
 """
@@ -18,8 +19,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--dry-run", action="store_true", help="Mostra o que seria feito, sem alterar nada.")
+        parser.add_argument(
+            "--rebuild-variants", action="store_true",
+            help="Volta a gerar as versões pequenas de todas as fotos (ex.: depois de mudar o recorte).",
+        )
 
-    def handle(self, *args, dry_run=False, **options):
+    def handle(self, *args, dry_run=False, rebuild_variants=False, **options):
         converted = variants_only = skipped = failed = 0
         saved_bytes = 0
 
@@ -30,7 +35,7 @@ class Command(BaseCommand):
                 storage = photo.image.storage
                 is_webp = name.lower().endswith(".webp")
 
-                if is_webp and storage.exists(images.variant_name(name, images.VARIANT_WIDTHS[0])):
+                if is_webp and not rebuild_variants and storage.exists(images.variant_name(name, images.VARIANT_WIDTHS[0])):
                     skipped += 1
                     continue
 

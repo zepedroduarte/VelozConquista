@@ -4,6 +4,25 @@ import { VehiclePhoto } from "@/components/app/VehiclePhoto";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
+// Só as primeiras miniaturas são descarregadas (a última mostra "+N" e abre o ecrã inteiro).
+// No telemóvel não há miniaturas: desliza-se a foto principal, para não atrasar o carregamento.
+const MAX_THUMBS = 10;
+
+/** Deslizar o dedo para a esquerda/direita. */
+function swipe(onNext: () => void, onPrev: () => void) {
+    let startX: number | null = null;
+    return {
+        onTouchStart: (e: React.TouchEvent) => { startX = e.touches[0].clientX; },
+        onTouchEnd: (e: React.TouchEvent) => {
+            if (startX === null) return;
+            const dx = e.changedTouches[0].clientX - startX;
+            startX = null;
+            if (Math.abs(dx) < 40) return;
+            if (dx < 0) onNext(); else onPrev();
+        },
+    };
+}
+
 interface VehicleGalleryProps {
     images: string[];
     alt: string;
@@ -70,16 +89,17 @@ export function VehicleGallery({ images, alt }: VehicleGalleryProps) {
                     {total > 1 && (
                         <button
                             onClick={(e) => { e.stopPropagation(); prevImageLightbox(); }}
-                            className="absolute left-4 text-white/70 hover:text-white p-2 transition-colors z-50 hidden sm:block"
+                            className="absolute left-1 sm:left-4 text-white/70 hover:text-white p-2 transition-colors z-50"
                             aria-label="Imagem anterior"
                         >
                             <ChevronLeft className="size-10" />
                         </button>
                     )}
 
-                    <div className="relative w-full h-full max-w-7xl max-h-[90vh]">
+                    <div className="relative w-full h-full max-w-7xl max-h-[90vh]" {...swipe(nextImageLightbox, prevImageLightbox)}>
                         <VehiclePhoto
                             src={images[lightboxIndex]}
+                            fullFrame
                             alt={`${alt} - imagem ${lightboxIndex + 1}`}
                             fill
                             sizes="100vw"
@@ -96,7 +116,7 @@ export function VehicleGallery({ images, alt }: VehicleGalleryProps) {
                     {total > 1 && (
                         <button
                             onClick={(e) => { e.stopPropagation(); nextImageLightbox(); }}
-                            className="absolute right-4 text-white/70 hover:text-white p-2 transition-colors z-50 hidden sm:block"
+                            className="absolute right-1 sm:right-4 text-white/70 hover:text-white p-2 transition-colors z-50"
                             aria-label="Imagem seguinte"
                         >
                             <ChevronRight className="size-10" />
@@ -108,6 +128,7 @@ export function VehicleGallery({ images, alt }: VehicleGalleryProps) {
             <div
                 className="relative w-full aspect-video rounded-xl overflow-hidden shadow-lg bg-gray-100 border cursor-zoom-in group"
                 onClick={openLightbox}
+                {...swipe(() => setSelectedIndex((prev) => (prev + 1) % total), () => setSelectedIndex((prev) => (prev - 1 + total) % total))}
             >
                 <VehiclePhoto
                     src={selectedImage}
@@ -128,25 +149,28 @@ export function VehicleGallery({ images, alt }: VehicleGalleryProps) {
                     <>
                         <button
                             onClick={handlePrevMain}
-                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-black p-2 rounded-full shadow-md z-10 transition-all opacity-0 group-hover:opacity-100"
+                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-black p-2 rounded-full shadow-md z-10 transition-all sm:opacity-0 sm:group-hover:opacity-100"
                             aria-label="Imagem anterior"
                         >
                             <ChevronLeft className="size-6" />
                         </button>
                         <button
                             onClick={handleNextMain}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-black p-2 rounded-full shadow-md z-10 transition-all opacity-0 group-hover:opacity-100"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-black p-2 rounded-full shadow-md z-10 transition-all sm:opacity-0 sm:group-hover:opacity-100"
                             aria-label="Imagem seguinte"
                         >
                             <ChevronRight className="size-6" />
                         </button>
+                        <span className="absolute bottom-2 right-2 z-10 rounded-full bg-black/60 px-2.5 py-0.5 text-xs font-medium text-white pointer-events-none">
+                            {selectedIndex + 1} / {total}
+                        </span>
                     </>
                 )}
             </div>
 
             {total > 1 && (
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-4">
-                    {images.map((src, index) => (
+                <div className="hidden sm:grid grid-cols-5 gap-4">
+                    {images.slice(0, MAX_THUMBS).map((src, index) => (
                         <button
                             key={src}
                             type="button"
@@ -161,6 +185,12 @@ export function VehicleGallery({ images, alt }: VehicleGalleryProps) {
                                 sizes="(max-width: 640px) 25vw, 15vw"
                                 className="object-cover"
                             />
+                            {index === MAX_THUMBS - 1 && total > MAX_THUMBS && (
+                                <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-white font-semibold"
+                                    onClick={(e) => { e.stopPropagation(); setLightboxIndex(index); setIsLightboxOpen(true); }}>
+                                    +{total - MAX_THUMBS + 1}
+                                </span>
+                            )}
                         </button>
                     ))}
                 </div>

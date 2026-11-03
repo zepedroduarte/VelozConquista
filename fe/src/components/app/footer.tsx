@@ -28,6 +28,7 @@ export function Footer() {
 
   return (
     <footer className="border-t bg-background">
+      <h2 className="sr-only">Informações do stand</h2>
       <div className="w-[70vw] mx-auto py-3 md:py-3 px-4">
         <div className="hidden md:grid grid-cols-1 gap-10 md:grid-cols-4">
           <div className="space-y-4">

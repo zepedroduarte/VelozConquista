@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react"; 
+import { isAxiosError } from "axios";
 import { useCompany } from "@/context/CompanyContext";
 import api from "@/lib/axios";
 
@@ -25,6 +26,9 @@ type ContactFormValues = z.infer<typeof ContactFormSchema>;
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  // Honeypot: campo escondido que só robôs de spam preenchem
+  const [website, setWebsite] = useState("");
 
   const { company } = useCompany();
     
@@ -40,7 +44,9 @@ export default function Contact() {
 
   async function onSubmit(values: ContactFormValues) {
       try {
+          setSendError(null);
           const payload = {
+              website,
               sender_name: values.name,
               sender_email: values.email,
               subject: values.subject,
@@ -55,6 +61,10 @@ export default function Contact() {
 
       } catch (error) {
           console.error("Erro ao enviar mensagem:", error);
+          const tooMany = isAxiosError(error) && error.response?.status === 429;
+          setSendError(tooMany
+              ? "Foram enviadas demasiadas mensagens. Tente mais tarde ou contacte-nos por telefone."
+              : "Não foi possível enviar a mensagem. Tente novamente ou contacte-nos por telefone.");
       }
   }
 
@@ -121,6 +131,10 @@ export default function Contact() {
                   
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+                        <label htmlFor="website">Não preencher</label>
+                        <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+                      </div>
                       
                       <FormField
                         control={form.control}
@@ -178,6 +192,8 @@ export default function Contact() {
                       <p className="text-sm text-muted-foreground pt-1">
                         Todos os campos são obrigatórios.
                       </p>
+
+                      {sendError && <p role="alert" className="text-sm text-red-600">{sendError}</p>}
 
                       <div className="flex justify-end items-center pt-2">                                       
                         {submitted ? (

@@ -5,7 +5,7 @@ Any upload (JPG, PNG, HEIC from an iPhone, ...) is:
   1. rotated according to its EXIF orientation (phone photos come in sideways otherwise)
   2. stripped of all metadata (including GPS location)
   3. resized so the longest side is at most MAX_SIZE px
-  4. saved as WebP, plus smaller WebP variants used by the frontend on mobile:
+  4. saved as WebP, plus smaller WebP variants (centre-cropped to 4:3) used by the frontend on mobile:
 
       vehicles/<car>/<photo>.webp        (MAX_SIZE)
       vehicles/<car>/<photo>-w960.webp
@@ -30,6 +30,9 @@ except ImportError:  # pragma: no cover
     pass
 
 MAX_SIZE = 1600
+
+# Refuse absurdly large images (decompression bombs). 80 MP covers 48 MP phone cameras.
+Image.MAX_IMAGE_PIXELS = 80_000_000
 VARIANT_WIDTHS = (480, 960)
 WEBP_QUALITY = 75  # measured on the site's photos: ~10-35% smaller than the JPEGs with no visible loss
 
@@ -68,11 +71,21 @@ def optimize(file):
     return ContentFile(_to_webp(img), name=f"{base}.webp"), img
 
 
+def _card_crop(img, width):
+    """
+    Centre crop to 4:3 at `width` px. Every place that shows a small photo (cards,
+    thumbnails, the main photo on phones) crops it to 4:3 or 16:9 anyway, so a tall
+    phone photo would otherwise download ~3x more pixels than are shown.
+    """
+    width = min(width, img.width)
+    return ImageOps.fit(img, (width, round(width * 3 / 4)), Image.Resampling.LANCZOS)
+
+
 def save_variants(img, name, storage):
-    """Create the smaller WebP versions next to the main image."""
+    """Create the smaller WebP versions (4:3 crops) next to the main image."""
     for width in VARIANT_WIDTHS:
         path = variant_name(name, width)
-        content = ContentFile(_to_webp(_resized(img, max_width=width)))
+        content = ContentFile(_to_webp(_card_crop(img, width)))
         if storage.exists(path):
             storage.delete(path)
         storage.save(path, content)
