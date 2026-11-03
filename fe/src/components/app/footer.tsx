@@ -75,11 +75,9 @@ export function Footer({ company }: { company: CompanySettings | null }) {
             <li><Link href="/contacto" className="text-muted-foreground hover:text-foreground">Contactos e localização</Link></li>
             <li><Link href="/admin/dashboard" rel="nofollow" className="text-muted-foreground hover:text-foreground">Área reservada</Link></li>
           </ul>
-          {areas.length > 0 && (
-            <p className="text-xs text-muted-foreground pt-2">
-              Servimos clientes de {areas.join(", ")}.
-            </p>
-          )}
+          <p className="text-xs text-muted-foreground pt-2">
+            Vendemos para todo o país{areas.length > 0 && <>, a partir de {company?.locality || DEFAULT_LOCALITY}: {areas.join(", ")} e arredores</>}.
+          </p>
         </div>
       </div>
       <div className="border-t py-4 text-center text-xs text-muted-foreground">

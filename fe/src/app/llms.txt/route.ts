@@ -32,7 +32,7 @@ export async function GET() {
         company?.email && `- Email: ${company.email}`,
         company?.google_maps_url && `- Google Maps: ${company.google_maps_url}`,
         `- Horário: ${openingHoursRows(company).map((h) => `${h.label} ${h.text}`).join("; ")}`,
-        areas.length ? `- Zonas servidas: ${areas.join(", ")}` : "",
+        `- Vende para todo o país${areas.length ? `; maioria dos clientes de ${areas.join(", ")}` : ""}`,
         "",
         legal && "## Financiamento",
         legal && "",

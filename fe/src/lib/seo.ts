@@ -79,7 +79,10 @@ export function autoDealerJsonLd(company: CompanySettings | null) {
                 closes,
             })),
         ),
-        areaServed: toLines(company.service_areas).map((name) => ({ "@type": "City", name })),
+        areaServed: [
+            { "@type": "Country", name: "Portugal" },
+            ...toLines(company.service_areas).map((name) => ({ "@type": "City", name })),
+        ],
         sameAs: sameAs.length ? sameAs : undefined,
         priceRange: "€€",
         currenciesAccepted: "EUR",

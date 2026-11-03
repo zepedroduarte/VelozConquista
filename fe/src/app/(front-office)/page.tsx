@@ -38,9 +38,9 @@ export default async function Home() {
             q: "Como posso marcar uma visita ou pedir mais informações sobre um carro?",
             a: `Ligue${company?.phone ? ` para o ${company.phone}` : ""}, envie email${company?.email ? ` para ${company.email}` : ""} ou use o formulário da página de contactos.`,
         },
-        areas.length > 1 && {
+        {
             q: `Atendem clientes de fora de ${locality}?`,
-            a: `Sim. Recebemos clientes de ${areas.join(", ")} e arredores.`,
+            a: `Sim, vendemos para todo o país.${areas.length ? ` A maioria dos clientes vem de ${areas.join(", ")}, mas recebemos regularmente clientes de Leiria, do Algarve e de outras regiões.` : ""}`,
         },
     ].filter(Boolean) as { q: string; a: string }[];
 

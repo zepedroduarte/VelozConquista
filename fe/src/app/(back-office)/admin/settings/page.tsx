@@ -103,7 +103,7 @@ const COMPANY_FIELDS: FieldDef<CompanySettings>[] = [
     { name: "longitude", label: "Longitude", hint: "O 2.º número (negativo, ex.: -9.19...)." },
     { name: "instagram_url", label: "Instagram (link)", type: "url" },
     { name: "facebook_url", label: "Facebook (link)", type: "url" },
-    { name: "service_areas", label: "Zonas servidas", type: "textarea", hint: "Uma localidade por linha. Aparece no rodapé e nas perguntas frequentes." },
+    { name: "service_areas", label: "Zonas mais próximas", type: "textarea", hint: "Uma localidade por linha. O site já diz que vendem para todo o país; esta lista ajuda nas pesquisas locais (ex.: \"carros usados Odivelas\"). Pode ficar vazia." },
     { name: "description", label: "Texto da página \"Sobre Nós\"", type: "textarea", hint: "Cada linha é um parágrafo." },
 ];
 
