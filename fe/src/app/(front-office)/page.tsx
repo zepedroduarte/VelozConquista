@@ -74,7 +74,7 @@ export default async function Home() {
                             Carros usados e semi-novos em {locality}
                         </h1>
                         <p className="mt-3 max-w-xl text-base text-white/75 md:text-lg">
-                            Stand em Ponte de Lousa com financiamento até 120 meses e atendimento personalizado.
+                            Stand em {locality} com financiamento até 120 meses e atendimento personalizado.
                         </p>
                         <ul className="mt-5 hidden flex-wrap gap-x-6 gap-y-2 text-sm text-white/85 sm:flex">
                             {highlights.map(({ icon: Icon, text }) => (
