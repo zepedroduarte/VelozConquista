@@ -14,10 +14,10 @@ export default async function FrontOfficeLayout({
   return (
     <>
       <JsonLd data={autoDealerJsonLd(company)} />
-      <Header />
-        <main className="flex-1">
+      <Header company={company} />
+        <div className="flex-1">
           {children}
-        </main>
+        </div>
       <Footer company={company} />
     </>
   );

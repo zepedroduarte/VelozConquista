@@ -1,18 +1,24 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ChevronRight, Clock, MapPin, Phone } from "lucide-react"
+import { ArrowRight, BadgeEuro, ChevronRight, Clock, Landmark, MapPin, Phone, Truck } from "lucide-react"
 import { VehicleCard } from "@/components/app/VehicleCard"
+import { QuickSearch } from "@/components/app/QuickSearch"
 import { JsonLd } from "@/components/app/JsonLd"
-import { getCompany, getLatestVehicles, getLegalInfo } from "@/lib/api-server"
-import { DEFAULT_LOCALITY, openingHoursRows, toLines } from "@/lib/seo"
+import { getAllVehicles, getCompany, getLegalInfo } from "@/lib/api-server"
+import { facetOptions, toQuery } from "@/lib/inventory"
+import { DEFAULT_LOCALITY, openingHoursRows, telHref, toLines } from "@/lib/seo"
+import { slugify } from "@/lib/vehicle"
 
 export const metadata: Metadata = {
     alternates: { canonical: "/" },
 }
 
 export default async function Home() {
-    const [featuredVehicles, company, legal] = await Promise.all([getLatestVehicles(3), getCompany(), getLegalInfo().catch(() => null)]);
+    const [vehicles, company, legal] = await Promise.all([getAllVehicles(), getCompany(), getLegalInfo().catch(() => null)]);
+    const latest = vehicles.slice(0, 6);
+    const makes = facetOptions(vehicles, "marca");
+    const bodyStyles = facetOptions(vehicles, "segmento");
 
     const locality = company?.locality || DEFAULT_LOCALITY;
     const hours = openingHoursRows(company);
@@ -50,90 +56,107 @@ export default async function Home() {
         mainEntity: faq.map(({ q, a }) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
     };
 
+    const highlights = [
+        { icon: BadgeEuro, text: "Financiamento até 120 meses" },
+        legal && { icon: Landmark, text: "Intermediário de crédito registado no Banco de Portugal" },
+        { icon: Truck, text: "Vendemos para todo o país" },
+    ].filter(Boolean) as { icon: typeof BadgeEuro; text: string }[];
+
     return (
-        <main className="flex-1">
-            <section className="relative bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-800 text-white py-32">
-                <div className="w-[70vw] mx-auto flex flex-col items-start justify-center">
-                    <p className="text-sm font-semibold uppercase tracking-widest text-red-500">
-                        {company?.name || "Veloz Conquista"}
-                    </p>
-                    <h1 className="mt-2 text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
-                        Carros usados e semi-novos em {locality}
-                    </h1>
-                    <p className="mt-4 max-w-lg text-xl text-white/80">
-                        Stand em Ponte de Lousa com financiamento até 120 meses e atendimento personalizado.
-                    </p>
-                    <div className="mt-8 flex flex-wrap gap-4">
-                        <Link href="/veiculos">
-                            <Button
-                                size="lg"
-                                className="bg-red-600 hover:bg-red-700 text-white transition-all"
-                            >
-                                Ver Veículos
-                            </Button>
-                        </Link>
-                        <Link href="/contacto">
-                            <Button
-                                size="lg"
-                                variant="outline"
-                                className="border-white text-black dark:text-white hover:bg-white/90 transition-all"
-                            >
-                                Contacto
-                            </Button>
-                        </Link>
+        <main>
+            <section className="bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800 text-white">
+                <div className="site-container grid items-center gap-6 py-8 md:py-14 lg:grid-cols-[1fr_400px] lg:gap-12">
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-widest text-red-500 sm:text-sm">
+                            {company?.name || "Veloz Conquista"}
+                        </p>
+                        <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+                            Carros usados e semi-novos em {locality}
+                        </h1>
+                        <p className="mt-3 max-w-xl text-base text-white/75 md:text-lg">
+                            Stand em Ponte de Lousa com financiamento até 120 meses e atendimento personalizado.
+                        </p>
+                        <ul className="mt-5 hidden flex-wrap gap-x-6 gap-y-2 text-sm text-white/85 sm:flex">
+                            {highlights.map(({ icon: Icon, text }) => (
+                                <li key={text} className="flex items-center gap-2"><Icon className="size-4 text-red-500" aria-hidden /> {text}</li>
+                            ))}
+                        </ul>
                     </div>
+                    <QuickSearch
+                        makes={makes.map(({ value, label }) => ({ value, label }))}
+                        stock={vehicles.map((v) => ({ make: slugify(v.vehicle_data.make), price: Number(v.retail_price) }))}
+                    />
                 </div>
             </section>
 
-            <section className="py-16 bg-white">
-                <div className="w-[70vw] mx-auto">
-                    <div className="flex flex-col items-center text-center mb-12">
-                        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-gray-900">
-                            Últimas Entradas
-                        </h2>
-                        <p className="mt-4 text-lg text-muted-foreground max-w-2xl">
-                            Descubra as últimas novidades do nosso inventário.
-                        </p>
+            <section className="py-10 md:py-14">
+                <div className="site-container">
+                    <div className="mb-5 flex items-end justify-between gap-4">
+                        <div>
+                            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Últimas entradas</h2>
+                            <p className="mt-1 text-sm text-muted-foreground">As viaturas que chegaram mais recentemente ao stand.</p>
+                        </div>
+                        <Link href="/veiculos" className="hidden shrink-0 items-center gap-1 text-sm font-semibold text-red-600 hover:underline sm:flex">
+                            Ver todas ({vehicles.length}) <ArrowRight className="size-4" aria-hidden />
+                        </Link>
                     </div>
 
-                    {featuredVehicles.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {featuredVehicles.map((vehicle, index) => (
-                                <VehicleCard
-                                    key={vehicle.id}
-                                    vehicle={vehicle}
-                                    priority={index < 3}
-                                />
+                    {latest.length > 0 ? (
+                        <div className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 scrollbar-none sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
+                            {latest.map((vehicle, index) => (
+                                <div key={vehicle.id} className="w-[82%] shrink-0 snap-start sm:w-auto">
+                                    <VehicleCard
+                                        vehicle={vehicle}
+                                        priority={index === 0}
+                                        sizes="(max-width: 640px) 82vw, (max-width: 1024px) 50vw, 400px"
+                                    />
+                                </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-12 bg-gray-50 rounded-lg">
+                        <div className="rounded-xl bg-neutral-50 py-12 text-center">
                             <p className="text-muted-foreground">O nosso stock está a ser atualizado. Volte em breve!</p>
                         </div>
                     )}
 
-                    <div className="mt-12 text-center">
-                        <Link href="/veiculos">
-                            <Button variant="outline" size="lg" className="gap-2 border-gray-300 hover:bg-gray-100">
-                                Ver Todos os Veículos
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
-                        </Link>
-                    </div>
+                    <Link
+                        href="/veiculos"
+                        className="mt-6 flex h-12 items-center justify-center gap-2 rounded-full border-2 border-neutral-900 text-sm font-semibold hover:bg-neutral-900 hover:text-white sm:mx-auto sm:max-w-xs"
+                    >
+                        Ver todas as {vehicles.length} viaturas <ArrowRight className="size-4" aria-hidden />
+                    </Link>
+
+                    {bodyStyles.length > 1 && (
+                        <div className="mt-10">
+                            <h2 className="mb-3 text-lg font-semibold">Procurar por tipo</h2>
+                            <ul className="flex flex-wrap gap-2">
+                                {bodyStyles.map((b) => (
+                                    <li key={b.value}>
+                                        <Link
+                                            href={`/veiculos${toQuery({ segmento: [b.value] })}`}
+                                            className="inline-flex h-10 items-center gap-2 rounded-full border bg-white px-4 text-sm font-medium hover:border-red-600 hover:text-red-600"
+                                        >
+                                            {b.label} <span className="text-xs text-muted-foreground">{b.count}</span>
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </section>
 
-            <section className="py-16 bg-neutral-50 border-t">
-                <div className="w-[90vw] max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <section className="border-t bg-neutral-50 py-12 md:py-16">
+                <div className="site-container grid grid-cols-1 gap-10 lg:grid-cols-2">
                     <div className="space-y-5">
-                        <h2 className="text-3xl font-bold tracking-tight text-gray-900">Visite o nosso stand em {locality}</h2>
+                        <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Visite o nosso stand em {locality}</h2>
                         {company?.description && <p className="text-muted-foreground">{company.description}</p>}
                         <ul className="space-y-3 text-sm">
                             {company?.address && (
                                 <li className="flex gap-3"><MapPin className="size-5 shrink-0 text-red-600" /><span>{company.address}</span></li>
                             )}
                             {company?.phone && (
-                                <li className="flex gap-3"><Phone className="size-5 shrink-0 text-red-600" /><a href={`tel:${company.phone.replace(/\s/g, "")}`} className="hover:text-red-600">{company.phone}</a></li>
+                                <li className="flex gap-3"><Phone className="size-5 shrink-0 text-red-600" /><a href={telHref(company.phone)} className="hover:text-red-600">{company.phone}</a></li>
                             )}
                             <li className="flex gap-3">
                                 <Clock className="size-5 shrink-0 text-red-600" />
@@ -142,16 +165,16 @@ export default async function Home() {
                         </ul>
                         <div className="flex flex-wrap gap-3">
                             {company?.google_maps_url && (
-                                <a href={company.google_maps_url} target="_blank" rel="noopener noreferrer">
-                                    <Button className="bg-red-600 hover:bg-red-700 text-white">Como chegar</Button>
-                                </a>
+                                <Button asChild size="lg" className="bg-red-600 hover:bg-red-700 text-white">
+                                    <a href={company.google_maps_url} target="_blank" rel="noopener noreferrer">Como chegar</a>
+                                </Button>
                             )}
-                            <Link href="/contacto"><Button variant="outline">Enviar mensagem</Button></Link>
+                            <Button asChild size="lg" variant="outline"><Link href="/contacto">Enviar mensagem</Link></Button>
                         </div>
                     </div>
 
                     <div className="space-y-3">
-                        <h2 className="text-2xl font-bold tracking-tight text-gray-900">Perguntas frequentes</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">Perguntas frequentes</h2>
                         {faq.map(({ q, a }) => (
                             <details key={q} className="group rounded-lg border bg-white px-4 py-3">
                                 <summary className="cursor-pointer list-none font-medium flex justify-between gap-4">

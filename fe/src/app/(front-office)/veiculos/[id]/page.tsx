@@ -72,14 +72,14 @@ export default async function VehicleDetailsPage({ params }: VehicleDetailsProps
         : [PLACEHOLDER_IMAGE];
 
     return (
-        <main className="flex-1 py-16 bg-white">
+        <main className="bg-white py-6 md:py-12">
             <JsonLd data={carJsonLd(vehicle)} />
             <JsonLd data={breadcrumbJsonLd([
                 { name: "Início", path: "/" },
                 { name: "Viaturas", path: "/veiculos" },
                 { name: vehicleTitle(vehicle), path: vehicleHref(vehicle) },
             ])} />
-            <div className="w-[70vw] mx-auto space-y-10">
+            <div className="site-container space-y-10">
 
                 <div className="flex flex-col gap-2">
                     <Link className="w-fit" href="/veiculos" passHref>

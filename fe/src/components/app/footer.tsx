@@ -3,17 +3,17 @@
 import Link from "next/link";
 import { Clock, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { CompanySettings } from "@/lib/types";
-import { DEFAULT_LOCALITY, openingHoursRows, toLines } from "@/lib/seo";
+import { DEFAULT_LOCALITY, openingHoursRows, telHref, toLines } from "@/lib/seo";
 
 export function Footer({ company }: { company: CompanySettings | null }) {
   const name = company?.name || "Veloz Conquista";
   const areas = toLines(company?.service_areas);
-  const phoneHref = company?.phone ? `tel:+351${company.phone.replace(/\D/g, "").replace(/^351/, "")}` : undefined;
+  const phoneHref = company?.phone ? telHref(company.phone) : undefined;
 
   return (
     <footer className="border-t bg-background">
       <h2 className="sr-only">Informações do stand</h2>
-      <div className="mx-auto max-w-6xl px-4 py-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="site-container py-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-3">
           <h3 className="text-lg font-semibold">{name}</h3>
           <p className="text-sm text-muted-foreground">

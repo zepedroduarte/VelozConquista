@@ -1,177 +1,205 @@
 'use client'
 
-import { Button } from "@/components/ui/button";
+import { useEffect, useMemo, useState } from "react";
+import { SlidersHorizontal, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { ListFilter } from "lucide-react";
-import { useMemo, useState } from 'react';
 import { VehicleCard } from "@/components/app/VehicleCard";
-import VehicleFilters, { SelectedFilters } from "@/components/app/vehicleFilters";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FilterPanel, selectClass } from "@/components/app/FilterPanel";
 import { Vehicle } from "@/lib/types";
+import {
+    FACETS, Filters, ORDERINGS, Ordering, RANGES, applyFilters, countActive, facetOptions, parseQuery, toQuery,
+} from "@/lib/inventory";
+import { formatMileage, formatPrice } from "@/lib/vehicle";
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 12;
 
-const EMPTY_FILTERS: SelectedFilters = {
-    bodyStyle: [], fuelType: [], transmissionType: [], tractionType: [], minPrice: "", maxPrice: ""
+const RANGE_LABEL: Record<string, (n: number) => string> = {
+    preco_min: (n) => `Desde ${formatPrice(n)}`,
+    preco_max: (n) => `Até ${formatPrice(n)}`,
+    ano_min: (n) => `Desde ${n}`,
+    km_max: (n) => `Até ${formatMileage(n)}`,
 };
-
-type Ordering = "-created_at" | "retail_price" | "-retail_price" | "vehicle_data__mileage";
-
-function matchesFilters(vehicle: Vehicle, filters: SelectedFilters): boolean {
-    const details = vehicle.vehicle_data;
-    const price = Number(vehicle.retail_price);
-    const inList = (list: number[], id?: number) => list.length === 0 || (id !== undefined && list.includes(id));
-
-    if (filters.minPrice && price < Number(filters.minPrice)) return false;
-    if (filters.maxPrice && price > Number(filters.maxPrice)) return false;
-
-    return inList(filters.fuelType, details.fuel_type?.id)
-        && inList(filters.transmissionType, details.transmission_type?.id)
-        && inList(filters.bodyStyle, details.body_style?.id)
-        && inList(filters.tractionType, details.traction_type?.id);
-}
-
-function compareVehicles(ordering: Ordering) {
-    return (a: Vehicle, b: Vehicle) => {
-        switch (ordering) {
-            case "retail_price": return Number(a.retail_price) - Number(b.retail_price);
-            case "-retail_price": return Number(b.retail_price) - Number(a.retail_price);
-            case "vehicle_data__mileage": return Number(a.vehicle_data.mileage) - Number(b.vehicle_data.mileage);
-            default: return (b.created_at ?? "").localeCompare(a.created_at ?? "");
-        }
-    };
-}
 
 // Todo o inventário chega já renderizado do servidor (ISR); filtros, ordenação e
 // paginação são feitos no browser, sem pedidos ao backend.
 export function VehicleInventory({ vehicles }: { vehicles: Vehicle[] }) {
-    const [currentPage, setCurrentPage] = useState(1);
-    const [resetKey, setResetKey] = useState(0);
-    const [activeFilters, setActiveFilters] = useState<SelectedFilters>(EMPTY_FILTERS);
-    const [ordering, setOrdering] = useState<Ordering>("-created_at");
+    const [filters, setFilters] = useState<Filters>({});
+    const [ordering, setOrdering] = useState<Ordering>("recentes");
+    const [visible, setVisible] = useState(PAGE_SIZE);
+    // Filtros do telemóvel: só se aplicam ao carregar em "Ver N viaturas"
+    const [draft, setDraft] = useState<Filters>({});
+    const [sheetOpen, setSheetOpen] = useState(false);
 
-    const filtered = useMemo(
-        () => vehicles.filter((v) => matchesFilters(v, activeFilters)).sort(compareVehicles(ordering)),
-        [vehicles, activeFilters, ordering],
-    );
+    // Filtros que vêm no endereço (link partilhado, pesquisa da página inicial, botão "voltar")
+    useEffect(() => {
+        const fromUrl = parseQuery(window.location.search);
+        setFilters(fromUrl.filters);
+        setOrdering(fromUrl.ordering);
+    }, []);
 
-    const totalCount = filtered.length;
-    const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-    const pageVehicles = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-    const handleFiltersUpdate = (filters: SelectedFilters) => {
-        setActiveFilters(filters);
-        setCurrentPage(1);
+    const update = (nextFilters: Filters, nextOrdering = ordering) => {
+        setFilters(nextFilters);
+        setOrdering(nextOrdering);
+        setVisible(PAGE_SIZE);
+        window.history.replaceState(null, "", `${window.location.pathname}${toQuery(nextFilters, nextOrdering)}`);
     };
 
-    const handleResetFilters = () => {
-        handleFiltersUpdate(EMPTY_FILTERS);
-        setResetKey(prev => prev + 1);
-    };
+    const results = useMemo(() => applyFilters(vehicles, filters, ordering), [vehicles, filters, ordering]);
+    const draftCount = useMemo(() => applyFilters(vehicles, draft).length, [vehicles, draft]);
+    const activeCount = countActive(filters);
 
-    const goToPage = (page: number) => {
-        setCurrentPage(page);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    };
+    const activeChips = [
+        ...FACETS.flatMap(({ key }) => {
+            const labels = new Map(facetOptions(vehicles, key).map((o) => [o.value, o.label]));
+            return (filters[key] ?? []).map((value) => ({
+                id: `${key}-${value}`,
+                label: labels.get(value) ?? value,
+                remove: () => {
+                    const values = filters[key]!.filter((v) => v !== value);
+                    const next = { ...filters, [key]: values };
+                    if (!values.length) delete next[key];
+                    update(next);
+                },
+            }));
+        }),
+        ...RANGES.filter(({ key }) => filters[key] !== undefined).map(({ key }) => ({
+            id: key,
+            label: RANGE_LABEL[key](filters[key]!),
+            remove: () => {
+                const next = { ...filters };
+                delete next[key];
+                update(next);
+            },
+        })),
+    ];
 
     return (
-        <main className="min-h-screen bg-white py-12">
-            <div className="container mx-auto px-4 lg:px-8 max-w-[1400px]">
+        <main className="bg-neutral-50 pb-16">
+            <div className="site-container pt-6 pb-4 md:pt-10">
+                <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Carros usados à venda</h1>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    {vehicles.length} viaturas em stock em Loures · financiamento até 120 meses
+                </p>
+            </div>
 
-                <div className="mb-10">
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground inline-block border-b-4 border-red-600 pb-2">
-                        Inventário de Veículos ({totalCount})
-                    </h1>
+            {/* Barra fixa por baixo do cabeçalho */}
+            <div className="sticky top-14 z-30 border-y bg-white/95 backdrop-blur md:top-16">
+                <div className="site-container flex h-14 items-center gap-3">
+                    <Sheet open={sheetOpen} onOpenChange={(open) => { setSheetOpen(open); if (open) setDraft(filters); }}>
+                        <SheetTrigger className="inline-flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-medium hover:bg-neutral-100 lg:hidden">
+                            <SlidersHorizontal className="size-4" /> Filtros
+                            {activeCount > 0 && (
+                                <span className="flex size-5 items-center justify-center rounded-full bg-red-600 text-xs text-white">{activeCount}</span>
+                            )}
+                        </SheetTrigger>
+                        <SheetContent side="bottom" className="max-h-[90dvh] gap-0 rounded-t-2xl p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+                            <SheetTitle className="border-b px-5 py-4 text-base">Filtros</SheetTitle>
+                            <div className="overflow-y-auto px-5 py-5">
+                                <FilterPanel vehicles={vehicles} filters={draft} onChange={setDraft} />
+                            </div>
+                            <div className="flex gap-3 border-t px-5 py-4">
+                                <button type="button" onClick={() => setDraft({})} className="h-12 rounded-lg px-4 text-sm font-medium underline-offset-4 hover:underline">
+                                    Limpar
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { update(draft); setSheetOpen(false); }}
+                                    className="h-12 flex-1 rounded-lg bg-red-600 text-base font-semibold text-white hover:bg-red-700"
+                                >
+                                    Ver {draftCount} {draftCount === 1 ? "viatura" : "viaturas"}
+                                </button>
+                            </div>
+                        </SheetContent>
+                    </Sheet>
+
+                    <p className="hidden text-sm text-muted-foreground lg:block" aria-live="polite">
+                        <strong className="text-foreground">{results.length}</strong> {results.length === 1 ? "viatura" : "viaturas"}
+                    </p>
+
+                    <label className="ml-auto flex items-center gap-2 text-sm">
+                        <span className="hidden text-muted-foreground sm:inline">Ordenar</span>
+                        <select
+                            aria-label="Ordenar por"
+                            className={`${selectClass} h-10 w-auto rounded-full`}
+                            value={ordering}
+                            onChange={(e) => update(filters, e.target.value as Ordering)}
+                        >
+                            {ORDERINGS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                        </select>
+                    </label>
                 </div>
+            </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
-                    <aside className="hidden lg:block lg:col-span-1 space-y-6">
-                        <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground/80">
-                            <ListFilter className="size-5 text-red-600" />
-                            Filtrar por
-                        </h2>
-                        <VehicleFilters key={resetKey} onFilterChange={handleFiltersUpdate} />
-                    </aside>
-
-                    <div className="lg:col-span-3 space-y-6">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-sm text-muted-foreground pb-2">
-                            <div className="lg:hidden w-full sm:w-auto">
-                                <Sheet>
-                                    <SheetTrigger asChild>
-                                        <Button variant="outline" className="w-full sm:w-auto gap-2">
-                                            <ListFilter className="size-4" /> Filtros
-                                        </Button>
-                                    </SheetTrigger>
-                                    <SheetContent side="left" className="overflow-y-auto w-[300px]">
-                                        <SheetTitle className="sr-only">Filtrar viaturas</SheetTitle>
-                                        <div className="py-6 space-y-8 m-5">
-                                            <VehicleFilters key={resetKey} onFilterChange={handleFiltersUpdate} />
-                                        </div>
-                                    </SheetContent>
-                                </Sheet>
-                            </div>
-
-                            <p className="hidden sm:block">
-                                Página {currentPage} de {totalPages}. Veículos encontrados: {totalCount}
-                            </p>
-
-                            <div className="w-full sm:w-[240px]">
-                                <Select onValueChange={(value) => { setOrdering(value as Ordering); setCurrentPage(1); }} defaultValue="-created_at">
-                                    <SelectTrigger className="w-full bg-white" aria-label="Ordenar por">
-                                        <SelectValue placeholder="Ordenar por" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="-created_at">Mais Recente</SelectItem>
-                                        <SelectItem value="retail_price">Preço (Crescente)</SelectItem>
-                                        <SelectItem value="-retail_price">Preço (Decrescente)</SelectItem>
-                                        <SelectItem value="vehicle_data__mileage">Quilometragem</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+            <div className="site-container mt-6 grid gap-8 lg:grid-cols-[280px_1fr]">
+                <aside className="hidden lg:block" aria-label="Filtros">
+                    <div className="sticky top-36 max-h-[calc(100dvh-10rem)] overflow-y-auto rounded-xl border bg-white p-5">
+                        <div className="mb-4 flex items-center justify-between">
+                            <h2 className="font-semibold">Filtros</h2>
+                            {activeCount > 0 && (
+                                <button type="button" onClick={() => update({})} className="text-sm text-red-600 hover:underline">
+                                    Limpar
+                                </button>
+                            )}
                         </div>
-
-                        {pageVehicles.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                                {pageVehicles.map((vehicle, index) => (
-                                    <VehicleCard key={vehicle.id} vehicle={vehicle} priority={index < 3} />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-20 bg-gray-50 rounded-lg">
-                                <p className="text-lg text-gray-500">Nenhum veículo encontrado com estes filtros.</p>
-                                <Button variant="link" onClick={handleResetFilters}>
-                                    Limpar Filtros
-                                </Button>
-                            </div>
-                        )}
-
-                        {totalPages > 1 && (
-                            <div className="flex justify-center items-center space-x-2 pt-10">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => goToPage(Math.max(1, currentPage - 1))}
-                                    disabled={currentPage === 1}
-                                    className="hover:bg-gray-100"
-                                >
-                                    Anterior
-                                </Button>
-
-                                <span className="text-sm font-medium px-4">
-                                    Página {currentPage} de {totalPages}
-                                </span>
-
-                                <Button
-                                    variant="outline"
-                                    onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
-                                    disabled={currentPage === totalPages}
-                                    className="hover:bg-gray-100"
-                                >
-                                    Próxima
-                                </Button>
-                            </div>
-                        )}
+                        <FilterPanel vehicles={vehicles} filters={filters} onChange={update} />
                     </div>
-                </div>
+                </aside>
+
+                <section aria-labelledby="results-heading" className="min-w-0">
+                    <h2 id="results-heading" className="sr-only">Resultados</h2>
+
+                    {activeChips.length > 0 && (
+                        <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 scrollbar-none sm:mx-0 sm:flex-wrap sm:px-0">
+                            {activeChips.map((chip) => (
+                                <button
+                                    key={chip.id}
+                                    type="button"
+                                    onClick={chip.remove}
+                                    className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full bg-neutral-900 pl-3 pr-2 text-sm text-white hover:bg-neutral-700"
+                                >
+                                    {chip.label} <X className="size-4" aria-hidden />
+                                    <span className="sr-only">(remover filtro)</span>
+                                </button>
+                            ))}
+                            <button type="button" onClick={() => update({})} className="h-8 shrink-0 px-2 text-sm text-red-600 hover:underline">
+                                Limpar tudo
+                            </button>
+                        </div>
+                    )}
+
+                    <p className="mb-3 text-sm text-muted-foreground lg:hidden" aria-live="polite">
+                        <strong className="text-foreground">{results.length}</strong> {results.length === 1 ? "viatura encontrada" : "viaturas encontradas"}
+                    </p>
+
+                    {results.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 sm:gap-5">
+                            {results.slice(0, visible).map((vehicle, index) => (
+                                <VehicleCard key={vehicle.id} vehicle={vehicle} priority={index === 0} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="rounded-xl border bg-white px-6 py-16 text-center">
+                            <p className="text-lg font-medium">Nenhuma viatura com estes filtros.</p>
+                            <p className="mt-1 text-sm text-muted-foreground">Experimente remover alguns filtros ou contacte-nos.</p>
+                            <button type="button" onClick={() => update({})} className="mt-4 rounded-full border px-5 py-2 text-sm font-medium hover:bg-neutral-100">
+                                Limpar filtros
+                            </button>
+                        </div>
+                    )}
+
+                    {visible < results.length && (
+                        <div className="mt-8 flex flex-col items-center gap-2">
+                            <p className="text-sm text-muted-foreground">A ver {visible} de {results.length}</p>
+                            <button
+                                type="button"
+                                onClick={() => setVisible((n) => n + PAGE_SIZE)}
+                                className="h-12 w-full max-w-xs rounded-full border-2 border-neutral-900 text-sm font-semibold hover:bg-neutral-900 hover:text-white"
+                            >
+                                Ver mais viaturas
+                            </button>
+                        </div>
+                    )}
+                </section>
             </div>
         </main>
     );

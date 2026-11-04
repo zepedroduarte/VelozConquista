@@ -16,20 +16,27 @@ export function getPrimaryImageUrl(vehicle: Vehicle): string {
     return getImageUrl(primary?.image);
 }
 
+// Separador de milhares sempre presente ("9 900 €"): o pt-PT do browser não separa números de 4 dígitos.
+const NBSP = "\u00a0";
+
+function groupThousands(value: number, decimals = 0): string {
+    const [int, dec] = value.toFixed(decimals).split(".");
+    return int.replace(/\B(?=(\d{3})+(?!\d))/g, NBSP) + (dec ? `,${dec}` : "");
+}
+
 export function formatPrice(price: string | number, minimumFractionDigits = 0): string {
-    const numericPrice = typeof price === "string" ? parseFloat(price) : price;
-    return numericPrice.toLocaleString("pt-PT", { style: "currency", currency: "EUR", minimumFractionDigits });
+    return `${groupThousands(Number(price), minimumFractionDigits)}${NBSP}€`;
 }
 
 export function formatMileage(km: string | number): string {
-    return Number(km).toLocaleString("pt-PT") + " km";
+    return `${groupThousands(Number(km))}${NBSP}km`;
 }
 
 export function formatEngineSize(cc: string | number): string {
     return Number(cc).toFixed(0) + "cc";
 }
 
-function slugify(text: string): string {
+export function slugify(text: string): string {
     return text
         .normalize("NFD").replace(/[̀-ͯ]/g, "") // remove acentos
         .toLowerCase()

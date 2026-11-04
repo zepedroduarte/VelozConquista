@@ -7,6 +7,9 @@ import { getImageUrl, vehicleHref, vehicleTitle } from "./vehicle";
 
 export const DEFAULT_LOCALITY = "Loures";
 
+/** "918 630 374" → "tel:+351918630374" */
+export const telHref = (phone: string) => `tel:+351${phone.replace(/\D/g, "").replace(/^351/, "")}`;
+
 export const toLines = (text?: string) => (text ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
 
 /** "09:00-13:00, 14:30-19:00" → [["09:00","13:00"], ["14:30","19:00"]] */

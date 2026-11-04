@@ -29,8 +29,8 @@ export default async function About() {
     const [company, legal] = await Promise.all([getCompany(), getLegalInfo()]);
 
     return (
-        <main className="flex-1 py-16">
-        <div className="w-[70vw] mx-auto space-y-12">
+        <main className="py-8 md:py-16">
+        <div className="site-container space-y-12">
 
             <div className="max-w-4xl mx-auto space-y-8">
                 <h1 className="text-4xl font-bold tracking-tight border-b-2 border-red-600 inline-block pb-1">
