@@ -180,6 +180,8 @@ class Messages(models.Model):
     message_date = models.DateTimeField()
     subject = models.CharField(max_length=255)
     body = models.TextField()
+    # Viatura de onde veio o pedido ("Pedir informações" na página da viatura)
+    vehicle = models.ForeignKey('Vehicle', on_delete=models.SET_NULL, null=True, blank=True, related_name='messages')
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

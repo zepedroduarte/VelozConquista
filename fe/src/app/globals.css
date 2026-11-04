@@ -140,3 +140,10 @@
     display: none;
   }
 }
+
+/* Barra de contacto fixa (página da viatura, telemóvel): o rodapé não fica escondido por baixo */
+@media (width < 64rem) {
+  body:has([data-contact-bar]) {
+    padding-bottom: 5rem;
+  }
+}

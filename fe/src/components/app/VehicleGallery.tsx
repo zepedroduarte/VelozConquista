@@ -75,7 +75,7 @@ export function VehicleGallery({ images, alt }: VehicleGalleryProps) {
     }, [isLightboxOpen, nextImageLightbox, prevImageLightbox]);
 
     return (
-        <div className="lg:col-span-2 space-y-4">
+        <div className="space-y-3">
             {isLightboxOpen && (
                 <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4">
                     <button
@@ -126,7 +126,7 @@ export function VehicleGallery({ images, alt }: VehicleGalleryProps) {
             )}
 
             <div
-                className="relative w-full aspect-video rounded-xl overflow-hidden shadow-lg bg-gray-100 border cursor-zoom-in group"
+                className="relative -mx-4 aspect-[4/3] cursor-zoom-in overflow-hidden bg-neutral-100 group sm:mx-0 sm:rounded-xl"
                 onClick={openLightbox}
                 {...swipe(() => setSelectedIndex((prev) => (prev + 1) % total), () => setSelectedIndex((prev) => (prev - 1 + total) % total))}
             >
@@ -134,8 +134,8 @@ export function VehicleGallery({ images, alt }: VehicleGalleryProps) {
                     src={selectedImage}
                     alt={alt}
                     fill
-                    sizes="(max-width: 1024px) 100vw, 66vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 1024px) 100vw, 840px"
+                    className="object-cover"
                     priority
                 />
 
@@ -161,7 +161,7 @@ export function VehicleGallery({ images, alt }: VehicleGalleryProps) {
                         >
                             <ChevronRight className="size-6" />
                         </button>
-                        <span className="absolute bottom-2 right-2 z-10 rounded-full bg-black/60 px-2.5 py-0.5 text-xs font-medium text-white pointer-events-none">
+                        <span className="absolute bottom-3 right-3 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white pointer-events-none">
                             {selectedIndex + 1} / {total}
                         </span>
                     </>
@@ -169,12 +169,12 @@ export function VehicleGallery({ images, alt }: VehicleGalleryProps) {
             </div>
 
             {total > 1 && (
-                <div className="hidden sm:grid grid-cols-5 gap-4">
+                <div className="hidden sm:grid grid-cols-5 gap-2">
                     {images.slice(0, MAX_THUMBS).map((src, index) => (
                         <button
                             key={src}
                             type="button"
-                            className={`relative aspect-video rounded-md overflow-hidden border cursor-pointer transition-all hover:opacity-100 ${index === selectedIndex ? 'border-red-600 ring-2 ring-red-100' : 'border-border/50 opacity-70'}`}
+                            className={`relative aspect-[4/3] rounded-md overflow-hidden border cursor-pointer transition-all hover:opacity-100 ${index === selectedIndex ? 'border-red-600 ring-2 ring-red-100' : 'border-border/50 opacity-70'}`}
                             onClick={() => setSelectedIndex(index)}
                             aria-label={`Ver imagem ${index + 1}`}
                         >

@@ -32,8 +32,16 @@ export function formatMileage(km: string | number): string {
     return `${groupThousands(Number(km))}${NBSP}km`;
 }
 
-export function formatEngineSize(cc: string | number): string {
-    return Number(cc).toFixed(0) + "cc";
+/** "1 598 cm³", ou null quando não há cilindrada (elétricos ou campo por preencher). */
+export function formatEngineSize(cc: string | number): string | null {
+    const value = Number(cc);
+    return value > 0 ? `${groupThousands(value)}${NBSP}cm³` : null;
+}
+
+/** "90 cv", ou null quando a potência não está preenchida. */
+export function formatPower(cv: string | number): string | null {
+    const value = Number(cv);
+    return value > 0 ? `${value.toFixed(0)}${NBSP}cv` : null;
 }
 
 export function slugify(text: string): string {

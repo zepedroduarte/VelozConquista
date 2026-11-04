@@ -83,7 +83,7 @@ class AdminMessageViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, mixins
     pagination_class = None
 
     def get_queryset(self):
-        qs = Messages.objects.order_by('-created_at')
+        qs = Messages.objects.select_related('vehicle__vehicle_data').order_by('-created_at')
         if self.request.query_params.get('unread'):
             qs = qs.filter(is_read=False)
         return qs

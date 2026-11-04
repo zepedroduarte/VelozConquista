@@ -1,246 +1,232 @@
 'use client'
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { CheckCircle2, Clock, Facebook, Instagram, Mail, MapPin, MessageCircle, Phone, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Clock, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
-import { openingHoursRows } from "@/lib/seo";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { useState } from "react"; 
+import { openingHoursRows, telHref, whatsappHref } from "@/lib/seo";
 import { CompanySettings } from "@/lib/types";
-
-const ContactFormSchema = z.object({
-    name: z.string().min(2, "O nome é obrigatório."),
-    email: z.string().email("Por favor, insira um email válido."),
-    subject: z.string().min(1, "O assunto é obrigatório."), 
-    message: z.string().min(1, "A mensagem é obrigatória."), 
-});
-
-type ContactFormValues = z.infer<typeof ContactFormSchema>;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
-// Formulário de contacto: fetch simples (sem axios) para não carregar mais JavaScript nas páginas públicas.
-export function ContactPage({ company }: { company: CompanySettings | null }) {
-  const [submitted, setSubmitted] = useState(false);
-  const [sendError, setSendError] = useState<string | null>(null);
-  // Honeypot: campo escondido que só robôs de spam preenchem
-  const [website, setWebsite] = useState("");
+interface ContactVehicle {
+    id: number;
+    title: string;
+}
 
-    
-  const form = useForm<ContactFormValues>({
-      resolver: zodResolver(ContactFormSchema),
-      defaultValues: {
-          name: "",
-          email: "",
-          subject: "",
-          message: "",
-      },
-  });
+const EMPTY = { name: "", email: "", phone: "", subject: "", message: "" };
 
-  async function onSubmit(values: ContactFormValues) {
-      try {
-          setSendError(null);
-          const payload = {
-              website,
-              sender_name: values.name,
-              sender_email: values.email,
-              subject: values.subject,
-              body: values.message,
-          };
+// Formulário de contacto com validação nativa do browser e fetch simples:
+// sem axios, react-hook-form nem zod, para a página carregar depressa no telemóvel.
+// Vindo de uma viatura (/contacto?viatura=20), o assunto e a mensagem já vêm escritos.
+export function ContactPage({ company, vehicles }: { company: CompanySettings | null; vehicles: ContactVehicle[] }) {
+    const [values, setValues] = useState(EMPTY);
+    const [vehicle, setVehicle] = useState<ContactVehicle | null>(null);
+    const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
+    const [sendError, setSendError] = useState<string | null>(null);
+    // Honeypot: campo escondido que só robôs de spam preenchem
+    const [website, setWebsite] = useState("");
 
-          const res = await fetch(`${API_URL}/api/messages/`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-          });
-          if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { status: res.status });
-          
-          setSubmitted(true);
-          form.reset();
+    useEffect(() => {
+        const id = Number(new URLSearchParams(window.location.search).get("viatura"));
+        const found = vehicles.find((v) => v.id === id);
+        if (!found) return;
+        setVehicle(found);
+        setValues((prev) => ({
+            ...prev,
+            subject: `Pedido de informação: ${found.title}`,
+            message: `Olá! Tenho interesse no ${found.title}. Ainda está disponível?`,
+        }));
+    }, [vehicles]);
 
+    const set = (field: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+        setValues((prev) => ({ ...prev, [field]: e.target.value }));
 
-      } catch (error) {
-          console.error("Erro ao enviar mensagem:", error);
-          const tooMany = (error as { status?: number }).status === 429;
-          setSendError(tooMany
-              ? "Foram enviadas demasiadas mensagens. Tente mais tarde ou contacte-nos por telefone."
-              : "Não foi possível enviar a mensagem. Tente novamente ou contacte-nos por telefone.");
-      }
-  }
+    function removeVehicle() {
+        setVehicle(null);
+        setValues((prev) => ({ ...prev, subject: "", message: "" }));
+        window.history.replaceState(null, "", window.location.pathname);
+    }
 
-  return (
-    <>
-      <main className="py-8 md:py-16">
-        <div className="site-container">
-          <h1 className="text-4xl font-bold tracking-tight mb-8">
-            Contactos
-          </h1>
+    async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        setSendError(null);
+        setStatus("sending");
+        try {
+            const res = await fetch(`${API_URL}/api/messages/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    website,
+                    sender_name: values.name.trim(),
+                    sender_email: values.email.trim(),
+                    sender_phone_number: values.phone.replace(/[^\d+]/g, "") || null,
+                    subject: values.subject.trim(),
+                    body: values.message.trim(),
+                    vehicle: vehicle?.id ?? null,
+                }),
+            });
+            if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { status: res.status });
+            setStatus("sent");
+            setValues(EMPTY);
+            setVehicle(null);
+        } catch (error) {
+            console.error("Erro ao enviar mensagem:", error);
+            setStatus("idle");
+            setSendError((error as { status?: number }).status === 429
+                ? "Foram enviadas demasiadas mensagens. Tente mais tarde ou contacte-nos por telefone."
+                : "Não foi possível enviar a mensagem. Tente novamente ou contacte-nos por telefone.");
+        }
+    }
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div className="space-y-6">
-              <div className="space-y-4">          
-                
-                <div className="flex items-center space-x-3 text-lg">
-                  <Phone className="w-5 h-5 text-red-600 shrink-0" />
-                  <span className="text-foreground">
-                    <a href={`tel:${company?.phone?.replace(/\s/g, "")}`} className="hover:text-red-600">{company?.phone}</a> <span className="italic text-sm text-muted-foreground">(Chamada para rede móvel nacional)</span>
-                  </span>
-                </div>
+    const whatsapp = company?.whatsapp_number || company?.phone;
 
-                <div className="flex items-center space-x-3 text-lg">
-                  <Mail className="w-5 h-5 text-red-600 shrink-0" />
-                  <a href={`mailto:${company?.email}`} className="text-foreground hover:text-red-600 break-all">
-                    {company?.email}
-                  </a>
-                </div>
-                
-                <div className="flex space-x-3 text-lg items-start">
-                  <MapPin className="w-5 h-5 text-red-600 shrink-0 mt-1" />
-                  <address className="not-italic flex flex-col">
-                    <span className="text-foreground">{company?.address}</span>
-                    {company?.google_maps_url && (
-                      <a href={company.google_maps_url} target="_blank" rel="noopener noreferrer" className="mt-2 w-fit rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700">
-                        Como chegar (Google Maps)
-                      </a>
-                    )}
-                  </address>
-                </div>
+    return (
+        <main className="py-8 md:py-14">
+            <div className="site-container">
+                <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Contactos</h1>
+                <p className="mt-2 text-muted-foreground">Ligue, envie mensagem ou visite-nos no stand. Respondemos no próprio dia.</p>
 
-                <div className="flex space-x-3 text-lg items-start">
-                  <Clock className="w-5 h-5 text-red-600 shrink-0 mt-1" />
-                  <dl className="text-base space-y-1">
-                    {openingHoursRows(company).map((row) => (
-                      <div key={row.label} className="flex gap-3">
-                        <dt className="text-muted-foreground w-36">{row.label}</dt>
-                        <dd className="text-foreground">{row.text}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-              </div>
+                <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_1.4fr] lg:gap-14">
+                    {/* No telemóvel o formulário aparece primeiro */}
+                    <div className="order-2 space-y-6 lg:order-1">
+                        <div className="grid grid-cols-2 gap-3">
+                            {company?.phone && (
+                                <a href={telHref(company.phone)} className="flex h-12 items-center justify-center gap-2 rounded-lg bg-red-600 font-semibold text-white hover:bg-red-700">
+                                    <Phone className="size-5" aria-hidden /> Ligar
+                                </a>
+                            )}
+                            {whatsapp && (
+                                <a href={whatsappHref(whatsapp)} target="_blank" rel="noopener noreferrer" className="flex h-12 items-center justify-center gap-2 rounded-lg bg-green-700 font-semibold text-white hover:bg-green-800">
+                                    <MessageCircle className="size-5" aria-hidden /> WhatsApp
+                                </a>
+                            )}
+                        </div>
 
-              <div className="pt-4 flex items-center space-x-4">
-                <Link 
-                  href={company?.facebook_url || "#"} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-foreground hover:text-red-600 transition-colors"
-                >
-                  <Facebook className="h-7 w-7" />
-                </Link>
-                <Link 
-                  href={company?.instagram_url || "#"} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-foreground hover:text-red-600 transition-colors"
-                >
-                  <Instagram className="h-7 w-7" />
-                </Link>
-              </div>
-            </div>
+                        <ul className="space-y-4">
+                            {company?.phone && (
+                                <li className="flex gap-3">
+                                    <Phone className="mt-0.5 size-5 shrink-0 text-red-600" aria-hidden />
+                                    <span>
+                                        <a href={telHref(company.phone)} className="font-medium hover:text-red-600">{company.phone}</a>
+                                        <span className="block text-xs text-muted-foreground">Chamada para rede móvel nacional</span>
+                                    </span>
+                                </li>
+                            )}
+                            {company?.email && (
+                                <li className="flex gap-3">
+                                    <Mail className="mt-0.5 size-5 shrink-0 text-red-600" aria-hidden />
+                                    <a href={`mailto:${company.email}`} className="break-all font-medium hover:text-red-600">{company.email}</a>
+                                </li>
+                            )}
+                            {company?.address && (
+                                <li className="flex gap-3">
+                                    <MapPin className="mt-0.5 size-5 shrink-0 text-red-600" aria-hidden />
+                                    <address className="not-italic">
+                                        {company.address}
+                                        {company.google_maps_url && (
+                                            <a href={company.google_maps_url} target="_blank" rel="noopener noreferrer" className="mt-1 block w-fit text-sm font-semibold text-red-600 hover:underline">
+                                                Como chegar (Google Maps)
+                                            </a>
+                                        )}
+                                    </address>
+                                </li>
+                            )}
+                            <li className="flex gap-3">
+                                <Clock className="mt-0.5 size-5 shrink-0 text-red-600" aria-hidden />
+                                <dl className="space-y-1 text-sm">
+                                    {openingHoursRows(company).map((row) => (
+                                        <div key={row.label} className="flex gap-3">
+                                            <dt className="w-32 text-muted-foreground">{row.label}</dt>
+                                            <dd>{row.text}</dd>
+                                        </div>
+                                    ))}
+                                </dl>
+                            </li>
+                        </ul>
 
-            <div className="md:col-span-2">
-              <Card className="shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-2xl">Envie-nos uma Mensagem</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
-                        <label htmlFor="website">Não preencher</label>
-                        <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
-                      </div>
-                      
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              {/* Removido o * do placeholder */}
-                              <Input placeholder="Nome" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                        {(company?.facebook_url || company?.instagram_url) && (
+                            <div className="flex items-center gap-4">
+                                {company.facebook_url && (
+                                    <Link href={company.facebook_url} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-red-600">
+                                        <Facebook className="size-7" />
+                                    </Link>
+                                )}
+                                {company.instagram_url && (
+                                    <Link href={company.instagram_url} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-red-600">
+                                        <Instagram className="size-7" />
+                                    </Link>
+                                )}
+                            </div>
                         )}
-                      />
+                    </div>
 
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input placeholder="Email" type="email" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    <section aria-labelledby="form-heading" className="order-1 rounded-xl border p-5 sm:p-6 lg:order-2">
+                        <h2 id="form-heading" className="text-xl font-bold">Envie-nos uma mensagem</h2>
 
-                      <FormField
-                        control={form.control}
-                        name="subject"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input placeholder="Assunto" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="message"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Textarea placeholder="Mensagem" rows={5} {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <p className="text-sm text-muted-foreground pt-1">
-                        Todos os campos são obrigatórios.
-                      </p>
-
-                      {sendError && <p role="alert" className="text-sm text-red-600">{sendError}</p>}
-
-                      <div className="flex justify-end items-center pt-2">                                       
-                        {submitted ? (
-                          <p className="text-sm text-green-600 ml-4">
-                              Obrigado pela sua mensagem.<br />Responderemos assim que possível.
-                          </p>
+                        {status === "sent" ? (
+                            <div role="status" className="mt-6 flex flex-col items-center gap-3 py-8 text-center">
+                                <CheckCircle2 className="size-12 text-green-600" aria-hidden />
+                                <p className="text-lg font-semibold">Obrigado pela sua mensagem!</p>
+                                <p className="text-sm text-muted-foreground">Responderemos assim que possível.</p>
+                                <button type="button" onClick={() => setStatus("idle")} className="mt-2 text-sm font-medium text-red-600 hover:underline">
+                                    Enviar outra mensagem
+                                </button>
+                            </div>
                         ) : (
-                          <Button 
-                            type="submit" 
-                            className="bg-red-600 hover:bg-red-700 text-white transition-all w-fit"
-                            disabled={form.formState.isSubmitting}
-                          >
-                            {form.formState.isSubmitting ? "A Enviar..." : "Enviar"}
-                          </Button>
-                        )}                        
-                      </div>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
+                            <form onSubmit={onSubmit} className="mt-5 space-y-4">
+                                <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+                                    <label htmlFor="website">Não preencher</label>
+                                    <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+                                </div>
+
+                                {vehicle && (
+                                    <div className="flex items-center justify-between gap-3 rounded-lg bg-neutral-100 px-4 py-3 text-sm">
+                                        <span>Sobre: <strong>{vehicle.title}</strong></span>
+                                        <button type="button" onClick={removeVehicle} aria-label="Remover viatura" className="text-muted-foreground hover:text-foreground">
+                                            <X className="size-4" />
+                                        </button>
+                                    </div>
+                                )}
+
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <label className="space-y-1.5 sm:col-span-2">
+                                        <span className="text-sm font-medium">Nome</span>
+                                        <Input className="h-11" name="name" autoComplete="name" required minLength={2} maxLength={100} value={values.name} onChange={set("name")} />
+                                    </label>
+                                    <label className="space-y-1.5">
+                                        <span className="text-sm font-medium">Email</span>
+                                        <Input className="h-11" name="email" type="email" autoComplete="email" required maxLength={100} value={values.email} onChange={set("email")} />
+                                    </label>
+                                    <label className="space-y-1.5">
+                                        <span className="text-sm font-medium">Telefone <span className="font-normal text-muted-foreground">(opcional)</span></span>
+                                        <Input className="h-11" name="phone" type="tel" inputMode="tel" autoComplete="tel" pattern="[\d\s+()-]{9,20}" title="Indique um número com pelo menos 9 dígitos" value={values.phone} onChange={set("phone")} />
+                                    </label>
+                                    <label className="space-y-1.5 sm:col-span-2">
+                                        <span className="text-sm font-medium">Assunto</span>
+                                        <Input className="h-11" name="subject" required maxLength={255} value={values.subject} onChange={set("subject")} />
+                                    </label>
+                                    <label className="space-y-1.5 sm:col-span-2">
+                                        <span className="text-sm font-medium">Mensagem</span>
+                                        <Textarea name="message" rows={5} required value={values.message} onChange={set("message")} />
+                                    </label>
+                                </div>
+
+                                {sendError && <p role="alert" className="text-sm text-red-600">{sendError}</p>}
+
+                                <button
+                                    type="submit"
+                                    disabled={status === "sending"}
+                                    className="flex h-12 w-full items-center justify-center rounded-lg bg-red-600 font-semibold text-white hover:bg-red-700 disabled:opacity-60 sm:w-auto sm:px-8"
+                                >
+                                    {status === "sending" ? "A enviar..." : "Enviar mensagem"}
+                                </button>
+                            </form>
+                        )}
+                    </section>
+                </div>
             </div>
-          </div>
-        </div>
-      </main>
-    </>
-  )
+        </main>
+    );
 }

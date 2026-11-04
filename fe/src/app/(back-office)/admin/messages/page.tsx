@@ -1,16 +1,13 @@
 'use client'
 
 import { useState } from "react";
-import { Loader2, Mail, MailOpen, MessageCircle, MessageSquare, Phone, Trash2 } from "lucide-react";
+import { Car, Loader2, Mail, MailOpen, MessageCircle, MessageSquare, Phone, Trash2 } from "lucide-react";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AdminMessage, apiErrorMessage, useAdminData } from "@/lib/admin";
+import { telHref, whatsappHref } from "@/lib/seo";
 
-function whatsappLink(phone: string): string {
-    const digits = phone.replace(/\D/g, "");
-    return `https://wa.me/${digits.length === 9 ? `351${digits}` : digits}`;
-}
 
 export default function MessagesPage() {
     const [onlyUnread, setOnlyUnread] = useState(false);
@@ -77,12 +74,17 @@ export default function MessagesPage() {
                                                 <p className={`truncate ${m.is_read ? "" : "font-semibold"}`}>{m.sender_name}</p>
                                                 <span className="text-xs text-muted-foreground shrink-0">{new Date(m.created_at).toLocaleString("pt-PT", { dateStyle: "short", timeStyle: "short" })}</span>
                                             </div>
-                                            <p className={`text-sm truncate ${m.is_read ? "text-muted-foreground" : "text-foreground"}`}>{m.subject}</p>
+                                            <p className={`text-sm truncate ${m.is_read ? "text-muted-foreground" : "text-foreground"}`}>{m.vehicle && <Car className="inline size-4 mr-1 text-red-600 align-text-bottom" aria-label="Sobre uma viatura" />}{m.subject}</p>
                                             {!isOpen && <p className="text-sm text-muted-foreground truncate">{m.body}</p>}
                                         </div>
                                     </button>
                                     {isOpen && (
                                         <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 sm:pl-13">
+                                            {m.vehicle && (
+                                                <a href={`/veiculos/${m.vehicle}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-md bg-neutral-100 px-3 py-2 text-sm font-medium hover:text-red-600">
+                                                    <Car className="size-4 text-red-600" /> {m.vehicle_title}
+                                                </a>
+                                            )}
                                             <p className="text-sm whitespace-pre-wrap break-words">{m.body}</p>
                                             <div className="flex flex-wrap gap-2">
                                                 <Button asChild size="sm" className="bg-red-600 hover:bg-red-700 text-white gap-1">
@@ -90,8 +92,8 @@ export default function MessagesPage() {
                                                 </Button>
                                                 {m.sender_phone_number && (
                                                     <>
-                                                        <Button asChild size="sm" variant="outline" className="gap-1"><a href={`tel:${m.sender_phone_number}`}><Phone className="size-4" /> Ligar</a></Button>
-                                                        <Button asChild size="sm" variant="outline" className="gap-1"><a href={whatsappLink(m.sender_phone_number)} target="_blank" rel="noopener noreferrer"><MessageCircle className="size-4" /> WhatsApp</a></Button>
+                                                        <Button asChild size="sm" variant="outline" className="gap-1"><a href={telHref(m.sender_phone_number)}><Phone className="size-4" /> Ligar</a></Button>
+                                                        <Button asChild size="sm" variant="outline" className="gap-1"><a href={whatsappHref(m.sender_phone_number)} target="_blank" rel="noopener noreferrer"><MessageCircle className="size-4" /> WhatsApp</a></Button>
                                                     </>
                                                 )}
                                                 <Button size="sm" variant="ghost" onClick={() => setRead(m, false)}>Marcar como não lida</Button>

@@ -224,7 +224,7 @@ class AdminVehicleCreateSerializer(serializers.ModelSerializer):
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Messages
-        fields = ['sender_name', 'sender_email', 'sender_phone_number', 'subject', 'body']
+        fields = ['sender_name', 'sender_email', 'sender_phone_number', 'subject', 'body', 'vehicle']
 
 # --- Back-office (CMS) ---
 
@@ -285,10 +285,18 @@ class AdminCompanySettingsSerializer(serializers.ModelSerializer):
 
 
 class AdminMessageSerializer(serializers.ModelSerializer):
+    vehicle_title = serializers.SerializerMethodField()
+
     class Meta:
         model = Messages
-        fields = ['id', 'sender_name', 'sender_email', 'sender_phone_number', 'subject', 'body', 'is_read', 'created_at']
-        read_only_fields = ['sender_name', 'sender_email', 'sender_phone_number', 'subject', 'body', 'created_at']
+        fields = ['id', 'sender_name', 'sender_email', 'sender_phone_number', 'subject', 'body', 'vehicle', 'vehicle_title', 'is_read', 'created_at']
+        read_only_fields = ['sender_name', 'sender_email', 'sender_phone_number', 'subject', 'body', 'vehicle', 'created_at']
+
+    def get_vehicle_title(self, obj):
+        if not obj.vehicle:
+            return None
+        data = obj.vehicle.vehicle_data
+        return f"{data.make} {data.model} {data.version or ''} ({data.year})".replace('  ', ' ')
 
 
 class AttributeSerializer(serializers.Serializer):

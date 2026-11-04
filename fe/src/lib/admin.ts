@@ -55,6 +55,8 @@ export interface AdminMessage {
     sender_phone_number: string | null;
     subject: string;
     body: string;
+    vehicle: number | null;
+    vehicle_title: string | null;
     is_read: boolean;
     created_at: string;
 }

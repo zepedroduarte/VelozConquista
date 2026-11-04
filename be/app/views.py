@@ -1,3 +1,5 @@
+import os
+
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import viewsets, mixins, generics
@@ -189,14 +191,23 @@ class MessageCreateViewSet(generics.CreateAPIView):
         company_conf = CompanySettings.load()
         destination_email = company_conf.email
 
+        clean_phone = strip_tags(instance.sender_phone_number or '-')
+        vehicle_line = ''
+        if instance.vehicle:
+            data = instance.vehicle.vehicle_data
+            site = os.getenv('FRONTEND_REVALIDATE_URL', '').removesuffix('/api/revalidate')
+            vehicle_line = f"Viatura: {data.make} {data.model} {data.version or ''} ({data.year}) {site}/veiculos/{instance.vehicle.id}"
+
         email_subject = f"Nova Mensagem Site: {clean_subject}"
-        
+
         email_body = f"""
         Recebeste uma nova mensagem através do site Veloz Conquista.
 
         Nome: {clean_name}
         Email: {clean_email}
-        
+        Telefone: {clean_phone}
+        {vehicle_line}
+
         Assunto: {clean_subject}
         ----------------------------------------------------
         Mensagem:

@@ -10,6 +10,13 @@ export const DEFAULT_LOCALITY = "Loures";
 /** "918 630 374" → "tel:+351918630374" */
 export const telHref = (phone: string) => `tel:+351${phone.replace(/\D/g, "").replace(/^351/, "")}`;
 
+/** Link wa.me com a mensagem já escrita. Números de 9 dígitos levam o indicativo 351. */
+export function whatsappHref(phone: string, text?: string) {
+    const digits = phone.replace(/\D/g, "");
+    const number = digits.length === 9 ? `351${digits}` : digits;
+    return `https://wa.me/${number}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
+}
+
 export const toLines = (text?: string) => (text ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
 
 /** "09:00-13:00, 14:30-19:00" → [["09:00","13:00"], ["14:30","19:00"]] */
@@ -121,8 +128,8 @@ export function carJsonLd(vehicle: Vehicle) {
         color: d.color || undefined,
         vehicleEngine: {
             "@type": "EngineSpecification",
-            engineDisplacement: { "@type": "QuantitativeValue", value: Number(d.engine_size), unitCode: "CMQ" },
-            enginePower: { "@type": "QuantitativeValue", value: Number(d.power), unitCode: "BHP" },
+            engineDisplacement: Number(d.engine_size) > 0 ? { "@type": "QuantitativeValue", value: Number(d.engine_size), unitCode: "CMQ" } : undefined,
+            enginePower: Number(d.power) > 0 ? { "@type": "QuantitativeValue", value: Number(d.power), unitCode: "BHP" } : undefined,
         },
         offers: {
             "@type": "Offer",
