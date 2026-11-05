@@ -11,7 +11,19 @@ export function isPreOptimized(src: string): boolean {
     return src.includes(".blob.core.windows.net/") && src.toLowerCase().endsWith(".webp");
 }
 
+/**
+ * Nunca devolve o original (~230 KB, sem recorte): num iPhone (ecrã 3x) os cartões pediriam
+ * imagens com mais de 960 px e cada um descarregava a foto inteira. Acima de 960 usa a -w960.
+ */
 export default function vehiclePhotoLoader({ src, width }: ImageLoaderProps): string {
-    const variant = VARIANT_WIDTHS.find((w) => width <= w);
-    return variant ? `${src.slice(0, -".webp".length)}-w${variant}.webp` : src;
+    const variant = VARIANT_WIDTHS.find((w) => width <= w) ?? VARIANT_WIDTHS[VARIANT_WIDTHS.length - 1];
+    return `${src.slice(0, -".webp".length)}-w${variant}.webp`;
+}
+
+/**
+ * Foto grande da página da viatura: o original só em ecrãs de computador retina (> 1200 px).
+ * Um telemóvel 3x pede 1080/1200 e fica com a -w960.
+ */
+export function vehiclePhotoLoaderLarge({ src, width }: ImageLoaderProps): string {
+    return width > 1200 ? src : vehiclePhotoLoader({ src, width });
 }

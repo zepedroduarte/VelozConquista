@@ -133,6 +133,7 @@ export function VehicleGallery({ images, alt }: VehicleGalleryProps) {
                 <VehiclePhoto
                     src={selectedImage}
                     alt={alt}
+                    large
                     fill
                     sizes="(max-width: 1024px) 100vw, 840px"
                     className="object-cover"
