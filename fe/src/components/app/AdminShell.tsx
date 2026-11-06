@@ -13,30 +13,24 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     const { isAuthenticated, logout, isLoading } = useAuth();
     const router = useRouter();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+    // Só mostra o painel depois de o servidor confirmar a sessão (sem "flash" do conteúdo)
+    const [verified, setVerified] = useState(false);
 
     useEffect(() => {
-        if (isLoading) return;
-        const checkSecurity = async () => {
-            if (!isAuthenticated) {
-                router.push('/login');
-                return;
-            }
+        if (isLoading || verified) return;
+        if (!isAuthenticated) {
+            router.replace('/login');
+            return;
+        }
+        api.get('/admin/settings/company/')
+            .then(() => setVerified(true))
+            .catch(() => logout());
+    }, [isAuthenticated, isLoading, verified, logout, router]);
 
-            try {
-                await api.get('/admin/settings/company/');
-            } catch {
-                logout();
-            }
-        };
-
-        checkSecurity();
-    }, [isAuthenticated, isLoading, logout, router]);
-
-    if (isLoading) {
+    if (!verified) {
         return (
             <div className="h-screen w-full flex items-center justify-center bg-muted">
-                <p>A validar sessão...</p>
+                <p className="text-muted-foreground">A validar sessão...</p>
             </div>
         );
     }

@@ -75,4 +75,5 @@ export interface CompanySettings {
     saturday_hours?: string;
     sunday_hours?: string;
     service_areas?: string;
+    founded_year?: number | null;
 }

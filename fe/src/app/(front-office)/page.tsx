@@ -24,6 +24,7 @@ export default async function Home() {
     const hours = openingHoursRows(company);
     const areas = toLines(company?.service_areas);
     const lenders = toLines(legal?.lenders);
+    const years = company?.founded_year ? new Date().getFullYear() - company.founded_year : null;
 
     // Perguntas frequentes: só factos que o stand publica (morada, horário, crédito).
     // Ajudam o Google e os assistentes de IA a responder "onde comprar carro usado em Loures?"
@@ -58,7 +59,7 @@ export default async function Home() {
 
     const highlights = [
         { icon: BadgeEuro, text: "Financiamento até 120 meses" },
-        legal && { icon: Landmark, text: "Intermediário de crédito registado no Banco de Portugal" },
+        legal && { icon: Landmark, text: `Intermediário de crédito registado no Banco de Portugal (n.º ${legal.credit_intermediary_number})` },
         { icon: Truck, text: "Vendemos para todo o país" },
     ].filter(Boolean) as { icon: typeof BadgeEuro; text: string }[];
 
@@ -74,7 +75,9 @@ export default async function Home() {
                             Carros usados e semi-novos em {locality}
                         </h1>
                         <p className="mt-3 max-w-xl text-base text-white/75 md:text-lg">
-                            Stand em {locality} com financiamento até 120 meses e atendimento personalizado.
+                            {years && years > 1
+                                ? `Há ${years} anos a vender carros usados em ${locality}, com financiamento até 120 meses e atendimento personalizado.`
+                                : `Stand em ${locality} com financiamento até 120 meses e atendimento personalizado.`}
                         </p>
                         <ul className="mt-5 hidden flex-wrap gap-x-6 gap-y-2 text-sm text-white/85 sm:flex">
                             {highlights.map(({ icon: Icon, text }) => (

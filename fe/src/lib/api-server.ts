@@ -4,6 +4,7 @@
 // Visitors never wait for the Azure backend.
 import "server-only";
 import { CompanySettings, LegalInfo, Vehicle, VehicleOptions } from "./types";
+import { withFormattedNames } from "./vehicle";
 
 const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -47,23 +48,24 @@ export async function getAllVehicles(): Promise<Vehicle[]> {
             [CACHE_TAGS.vehicles],
         );
         if (!data) break;
-        if (Array.isArray(data)) return data;
+        if (Array.isArray(data)) return data.map(withFormattedNames);
 
         vehicles.push(...data.results);
         if (!data.next) break;
     }
 
-    return vehicles;
+    return vehicles.map(withFormattedNames);
 }
 
 export async function getLatestVehicles(limit = 3): Promise<Vehicle[]> {
     const data = await apiGet<Paginated<Vehicle>>(`/vehicles/?ordering=-created_at`, [CACHE_TAGS.vehicles]);
-    return (data?.results ?? []).slice(0, limit);
+    return (data?.results ?? []).slice(0, limit).map(withFormattedNames);
 }
 
 export async function getVehicle(id: string): Promise<Vehicle | null> {
     if (!/^\d+$/.test(id)) return null;
-    return apiGet<Vehicle>(`/vehicles/${id}/`, [CACHE_TAGS.vehicles]);
+    const vehicle = await apiGet<Vehicle>(`/vehicles/${id}/`, [CACHE_TAGS.vehicles]);
+    return vehicle && withFormattedNames(vehicle);
 }
 
 /** Página "Sobre": intermediário de crédito e apólice de seguro (editável no back-office). */

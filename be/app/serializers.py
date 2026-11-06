@@ -249,7 +249,7 @@ class AdminCompanySettingsSerializer(serializers.ModelSerializer):
             'name', 'description', 'phone', 'email', 'address',
             'facebook_url', 'instagram_url', 'whatsapp_number',
             'postal_code', 'locality', 'latitude', 'longitude', 'google_maps_url',
-            'weekday_hours', 'saturday_hours', 'sunday_hours', 'service_areas',
+            'weekday_hours', 'saturday_hours', 'sunday_hours', 'service_areas', 'founded_year',
         ]
 
     def to_internal_value(self, data):
@@ -264,7 +264,15 @@ class AdminCompanySettingsSerializer(serializers.ModelSerializer):
                     data[field] = str(round(float(str(value).replace(',', '.')), 6))
                 except ValueError:
                     pass  # the field validator reports the error
+        if data.get('founded_year') == '':
+            data['founded_year'] = None
         return super().to_internal_value(data)
+
+    def validate_founded_year(self, value):
+        from django.utils import timezone
+        if value is not None and not 1950 <= value <= timezone.localdate().year:
+            raise serializers.ValidationError('Indique um ano entre 1950 e o ano atual.')
+        return value
 
     HOURS_PATTERN =r'^\s*\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}\s*(,\s*\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}\s*)*$'
 

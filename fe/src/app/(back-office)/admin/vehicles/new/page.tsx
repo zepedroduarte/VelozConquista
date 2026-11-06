@@ -192,8 +192,9 @@ export default function NewVehiclePage() {
                                                     <SelectValue placeholder="Selecione..." />
                                                 </SelectTrigger>
                                             </FormControl>
-                                            <SelectContent>{status?.map((opt) => (<SelectItem key={opt?.id} value={String(opt?.id)}>{opt?.name}</SelectItem>))}</SelectContent>
+                                            <SelectContent>{status?.filter((opt) => opt.name !== "Vendido").map((opt) => (<SelectItem key={opt?.id} value={String(opt?.id)}>{opt?.name}</SelectItem>))}</SelectContent>
                                         </Select>
+                                        <p className="text-xs text-muted-foreground">Para marcar como vendido use o botão € na Gestão de Stock.</p>
                                         <FormMessage />
                                     </FormItem>
                                 )} />

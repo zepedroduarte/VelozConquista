@@ -30,6 +30,8 @@ class CompanySettings(models.Model):
     saturday_hours = models.CharField("Horário sábado", max_length=50, blank=True)
     sunday_hours = models.CharField("Horário domingo", max_length=50, blank=True)
     service_areas = models.TextField("Zonas servidas", blank=True, help_text="Uma por linha")
+    # O site calcula os anos de atividade a partir daqui ("há 12 anos")
+    founded_year = models.PositiveSmallIntegerField("Ano de abertura", null=True, blank=True)
 
     class Meta:
         verbose_name = "Definições da Empresa"

@@ -63,6 +63,8 @@ export default function EditVehiclePage({ params }: { params: Promise<{ id: stri
     const [previews, setPreviews] = useState<string[]>([]);
     const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
     const [newPrimaryIndex, setNewPrimaryIndex] = useState<number | null>(null);
+    // Viaturas vendidas: o estado só muda ao anular a venda (Registo de Vendas)
+    const [isSold, setIsSold] = useState(false);
 
     const form = useForm<VehicleValues>({
         resolver: zodResolver(VehicleSchema),
@@ -105,6 +107,7 @@ export default function EditVehiclePage({ params }: { params: Promise<{ id: stri
                 });
 
                 if (vData.images) setExistingImages(vData.images);
+                setIsSold(data.status.name === "Vendido");
 
             } catch (error) {
                 console.error("Erro ao carregar veículo:", error);
@@ -235,7 +238,18 @@ export default function EditVehiclePage({ params }: { params: Promise<{ id: stri
                                 <FormField control={form.control} name="make" render={({ field }) => (<FormItem><FormLabel>Marca</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField control={form.control} name="model" render={({ field }) => (<FormItem><FormLabel>Modelo</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField control={form.control} name="year" render={({ field }) => (<FormItem><FormLabel>Ano</FormLabel><FormControl><div className="relative"><Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" /><Input type="number" className="pl-9" {...field} /></div></FormControl><FormMessage /></FormItem>)} />
-                                <FormField control={form.control} name="status_id" render={({ field }) => (<FormItem><FormLabel>Estado</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="w-full"><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl><SelectContent>{status?.map((opt) => (<SelectItem key={opt?.id} value={String(opt?.id)}>{opt?.name}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>)} />
+                                <FormField control={form.control} name="status_id" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Estado</FormLabel>
+                                        {isSold ? (
+                                            <p className="flex h-9 items-center rounded-md border bg-muted px-3 text-sm">Vendido</p>
+                                        ) : (
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="w-full"><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl><SelectContent>{status?.filter((opt) => opt.name !== "Vendido").map((opt) => (<SelectItem key={opt?.id} value={String(opt?.id)}>{opt?.name}</SelectItem>))}</SelectContent></Select>
+                                        )}
+                                        <p className="text-xs text-muted-foreground">{isSold ? "Para voltar a pôr à venda, anule a venda no Registo de Vendas." : "Para marcar como vendido use o botão € na Gestão de Stock."}</p>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
                                 <FormField control={form.control} name="version" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Versão</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField control={form.control} name="license_plate" render={({ field }) => (<FormItem><FormLabel>Matrícula</FormLabel><FormControl><div className="relative"><CarFront className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" /><Input className="pl-9 uppercase font-mono" {...field} /></div></FormControl><FormMessage /></FormItem>)} />
                                 <FormField control={form.control} name="color" render={({ field }) => (<FormItem><FormLabel>Cor</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />

@@ -94,6 +94,7 @@ const COMPANY_FIELDS: FieldDef<CompanySettings>[] = [
     { name: "whatsapp_number", label: "WhatsApp", hint: "Com indicativo, ex.: 351912345678" },
     { name: "address", label: "Morada completa", full: true, hint: "Escreva-a exatamente como no Google Business Profile." },
     { name: "postal_code", label: "Código postal", hint: "Ex.: 2670-351" },
+    { name: "founded_year", label: "Ano de abertura do stand", hint: "Ex.: 2014. A página inicial mostra \"há 12 anos\" e atualiza sozinha todos os anos." },
     { name: "locality", label: "Localidade", hint: "Usada nos títulos do Google, ex.: \"Carros usados em Loures\"." },
     { name: "weekday_hours", label: "Horário segunda a sexta", hint: "Ex.: 09:00-19:00 ou 09:00-13:00, 14:30-19:00" },
     { name: "saturday_hours", label: "Horário sábado", hint: "Vazio = fechado" },
