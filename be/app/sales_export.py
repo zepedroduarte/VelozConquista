@@ -87,7 +87,8 @@ def _month_sheet(wb, title, rows):
 
     for i, r in enumerate(rows, start=2):
         ws.append([r["date"], r["car"], r["plate"], r["cost"], r["price"], f"=E{i}-D{i}",
-                   r["prep"], r["commission"], f"=F{i}+H{i}-G{i}", f"=I{i}*{VAT_RATE}", r["notes"]])
+                   # IVA (carros usados): sobre o lucro sem a comissão = margem − despesas de preparação
+                   r["prep"], r["commission"], f"=F{i}+H{i}-G{i}", f"=(F{i}-G{i})*{VAT_RATE}", r["notes"]])
         _style_row(ws, i, len(headers), fill=STRIPE_FILL if i % 2 else None)
         ws.cell(row=i, column=1).number_format = "dd/mm/yyyy"
         for col in range(4, 11):
