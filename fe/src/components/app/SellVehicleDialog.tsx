@@ -9,6 +9,8 @@ import { formatEuro } from "@/lib/admin";
 
 export interface SaleData {
     final_price: string;
+    /** Comissão da financeira (vazio = sem financiamento) */
+    commission: string;
     customer_name: string;
     customer_phone: string;
     customer_email: string;
@@ -19,6 +21,7 @@ export interface SaleData {
 export function SellVehicleDialog({ vehicle, onConfirm }: { vehicle: Vehicle, onConfirm: (id: number, sale: SaleData) => void }) {
     const [sale, setSale] = useState<SaleData>({
         final_price: vehicle.retail_price.toString(),
+        commission: "",
         customer_name: "", customer_phone: "", customer_email: "", customer_nif: "", notes: "",
     });
 
@@ -52,6 +55,15 @@ export function SellVehicleDialog({ vehicle, onConfirm }: { vehicle: Vehicle, on
                         <p className="text-xs text-muted-foreground">
                             Preço anunciado: {formatEuro(vehicle.retail_price)} · Preço de compra: {formatEuro(vehicle.purchase_price)}
                         </p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <Label>Comissão de financiamento (€) <span className="font-normal text-muted-foreground">(opcional)</span></Label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-2 text-muted-foreground">€</span>
+                            <Input type="number" inputMode="decimal" min="0" step="0.01" className="pl-8" placeholder="0" value={sale.commission} onChange={set("commission")} />
+                        </div>
+                        <p className="text-xs text-muted-foreground">Se ainda não sabe o valor, pode acrescentá-lo depois no Registo de Vendas.</p>
                     </div>
 
                     <div className="space-y-3 rounded-md border p-3">

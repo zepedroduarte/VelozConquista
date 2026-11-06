@@ -32,6 +32,7 @@ export interface Sale {
     vehicle: VehicleSummary;
     customer: Customer | null;
     final_price: string;
+    commission: string;
     notes: string;
     services_total: string;
     profit: string;

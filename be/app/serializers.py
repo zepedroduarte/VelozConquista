@@ -342,15 +342,23 @@ class SaleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SoldVehicle
-        fields = ['id', 'vehicle', 'customer', 'final_price', 'notes', 'services_total', 'profit', 'created_at']
+        fields = ['id', 'vehicle', 'customer', 'final_price', 'commission', 'notes', 'services_total', 'profit', 'created_at']
+        # Depois da venda só se corrigem a comissão (às vezes só se sabe mais tarde) e as notas
+        read_only_fields = ['final_price', 'created_at']
 
     def get_profit(self, obj):
-        services = obj.services_total or 0
-        return str(obj.final_price - obj.vehicle.purchase_price - services)
+        services = getattr(obj, 'services_total', None) or 0
+        return str(obj.final_price - obj.vehicle.purchase_price - services + obj.commission)
+
+    def validate_commission(self, value):
+        if value < 0:
+            raise serializers.ValidationError('A comissão não pode ser negativa.')
+        return value
 
 
 class MarkSoldSerializer(serializers.Serializer):
     final_price = serializers.DecimalField(max_digits=18, decimal_places=2, required=False)
+    commission = serializers.DecimalField(max_digits=18, decimal_places=2, required=False, min_value=0)
     customer_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), required=False, allow_null=True)
     customer_name = serializers.CharField(required=False, allow_blank=True)
     customer_phone = serializers.CharField(required=False, allow_blank=True, max_length=20)

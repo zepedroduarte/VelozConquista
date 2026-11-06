@@ -102,7 +102,7 @@ export default function AdminVehiclesPage() {
 
     const handleSale = async (id: number, sale: SaleData) => {
         try {
-            await api.post(`/admin/vehicles/${id}/mark_sold/`, sale);
+            await api.post(`/admin/vehicles/${id}/mark_sold/`, { ...sale, commission: sale.commission || "0" });
 
             // Atualização local otimista (a venda fica no "Registo de Vendas")
             setVehicles((prev) => prev.map(vehicle => {

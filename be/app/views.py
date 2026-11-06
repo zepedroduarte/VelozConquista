@@ -137,6 +137,7 @@ class AdminVehicleViewSet(viewsets.ModelViewSet):
                 vehicle=vehicle,
                 customer=customer,
                 final_price=data.get('final_price') or vehicle.retail_price,
+                commission=data.get('commission') or 0,
                 notes=data.get('notes', ''),
             )
 

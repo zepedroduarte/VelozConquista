@@ -5,10 +5,12 @@ Everything here requires an admin (staff) user, except LegalInfoView which feeds
 from decimal import Decimal
 
 from django.db import transaction
+from django.http import HttpResponse
 from django.db.models import Count, DecimalField, OuterRef, ProtectedError, Subquery, Sum, Value
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework import mixins, viewsets
+from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
@@ -18,6 +20,7 @@ from rest_framework.viewsets import GenericViewSet
 from .models import (
     CompanySettings, Customer, LegalInfo, Messages, SoldVehicle, Status, Vehicle, VehicleService,
 )
+from .sales_export import build_sales_workbook
 from .serializers import (
     AdminCompanySettingsSerializer,
     AdminMessageSerializer,
@@ -131,8 +134,8 @@ def sales_queryset():
     )
 
 
-class AdminSaleViewSet(mixins.ListModelMixin, mixins.DestroyModelMixin, GenericViewSet):
-    """List of sales. Deleting a sale puts the vehicle back in stock."""
+class AdminSaleViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
+    """List of sales (commission and notes editable). Deleting a sale puts the vehicle back in stock."""
     permission_classes = [IsAdminUser]
     serializer_class = SaleSerializer
     pagination_class = None
@@ -143,6 +146,26 @@ class AdminSaleViewSet(mixins.ListModelMixin, mixins.DestroyModelMixin, GenericV
         if year and year.isdigit():
             qs = qs.filter(created_at__year=int(year))
         return qs
+
+    @action(detail=False, methods=['get'])
+    def export(self, request):
+        """Resumo anual em Excel: ?year=2026&monthly_expenses=2800"""
+        params = request.query_params
+        year = int(params['year']) if params.get('year', '').isdigit() else timezone.localdate().year
+        try:
+            monthly_expenses = max(Decimal(params.get('monthly_expenses') or '0'), Decimal('0'))
+        except ArithmeticError:
+            return Response({'error': 'Despesas mensais inválidas.'}, status=400)
+
+        content = build_sales_workbook(
+            sales=sales_queryset().filter(created_at__year=year),
+            previous_sales=sales_queryset().filter(created_at__year=year - 1),
+            year=year,
+            monthly_expenses=monthly_expenses,
+        )
+        response = HttpResponse(content, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename="Vendas {year}.xlsx"'
+        return response
 
     def perform_destroy(self, instance):
         with transaction.atomic():
@@ -194,7 +217,7 @@ class AdminDashboardView(APIView):
 
         month_sales = list(sales_queryset().filter(created_at__gte=month_start))
         revenue = sum((s.final_price for s in month_sales), Decimal('0'))
-        profit = sum((s.final_price - s.vehicle.purchase_price - s.services_total for s in month_sales), Decimal('0'))
+        profit = sum((s.final_price - s.vehicle.purchase_price - s.services_total + s.commission for s in month_sales), Decimal('0'))
 
         oldest = in_stock.select_related('vehicle_data', 'status').order_by('created_at')[:5]
 
